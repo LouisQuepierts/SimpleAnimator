@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "net.quepierts.simple_animator.mixin",
+  "package": "net.quepierts.simple_animator.core.mixin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "simple_animator.refmap.json",
   "mixins": [
