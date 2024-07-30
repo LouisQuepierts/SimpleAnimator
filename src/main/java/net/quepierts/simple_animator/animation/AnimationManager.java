@@ -62,24 +62,33 @@ public class AnimationManager implements PreparableReloadListener {
                 .thenAcceptAsync((v) -> {
                     ImmutableMap.Builder<ResourceLocation, Animation> animationBuilder = ImmutableMap.builder();
                     ImmutableMap.Builder<ResourceLocation, Interaction> interactionBuilder = ImmutableMap.builder();
-                    ImmutableMap<ResourceLocation, Animation> extern = loadExtern();
+                    List<Pair<ResourceLocation, Animation[]>> extern = loadExtern();
                     List<Pair<ResourceLocation, Animation[]>> join = animations.join();
-                    join.stream()
-                            .flatMap((Function<Pair<ResourceLocation, Animation[]>, Stream<Pair<ResourceLocation, Animation>>>) pair -> {
-                                if (pair.getSecond().length > 1) {
-                                    interactionBuilder.put(pair.getFirst(), new Interaction(
-                                            pair.getFirst().withPrefix(Animation.Type.INVITE.path),
-                                            pair.getFirst().withPrefix(Animation.Type.REQUESTER.path),
-                                            pair.getFirst().withPrefix(Animation.Type.RECEIVER.path)
-                                    ));
-                                }
-                                return Arrays.stream(pair.getSecond())
-                                        .map(animation -> new Pair<>(pair.getFirst().withPrefix(animation.getType().path), animation));
-                            })
-                            .forEach(pair -> animationBuilder.put(pair.getFirst(), pair.getSecond()));
-                    this.animations = animationBuilder.putAll(extern).build();
+                    collect(extern, animationBuilder, interactionBuilder);
+                    collect(join, animationBuilder, interactionBuilder);
+                    this.animations = animationBuilder.build();
                     this.interactions = interactionBuilder.build();
                 });
+    }
+
+    private void collect(
+            List<Pair<ResourceLocation, Animation[]>> list,
+            ImmutableMap.Builder<ResourceLocation, Animation> animations,
+            ImmutableMap.Builder<ResourceLocation, Interaction> interactions
+    ) {
+        list.stream()
+                .flatMap((Function<Pair<ResourceLocation, Animation[]>, Stream<Pair<ResourceLocation, Animation>>>) pair -> {
+                    if (pair.getSecond().length > 1) {
+                        interactions.put(pair.getFirst(), new Interaction(
+                                pair.getFirst().withPrefix(Animation.Type.INVITE.path),
+                                pair.getFirst().withPrefix(Animation.Type.REQUESTER.path),
+                                pair.getFirst().withPrefix(Animation.Type.RECEIVER.path)
+                        ));
+                    }
+                    return Arrays.stream(pair.getSecond())
+                            .map(animation -> new Pair<>(pair.getFirst().withPrefix(animation.getType().path), animation));
+                })
+                .forEach(pair -> animations.put(pair.getFirst(), pair.getSecond()));
     }
 
     private CompletableFuture<List<Pair<ResourceLocation, Animation[]>>> load(ResourceManager pResourceManager, Executor pBackgroundExecutor) {
@@ -157,8 +166,8 @@ public class AnimationManager implements PreparableReloadListener {
         return interactions.keySet();
     }
 
-    public ImmutableMap<ResourceLocation, Animation> loadExtern() {
-        final ImmutableMap.Builder<ResourceLocation, Animation> builder = new ImmutableMap.Builder<>();
+    public List<Pair<ResourceLocation, Animation[]>> loadExtern() {
+        List<Pair<ResourceLocation, Animation[]>> animations = new ArrayList<>();
 
         if (!Files.exists(EXTERMAL_PATH)) {
             try {
@@ -172,7 +181,7 @@ public class AnimationManager implements PreparableReloadListener {
             Files.walkFileTree(EXTERMAL_PATH, new SimpleFileVisitor<>() {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     if (Files.isRegularFile(file) && file.toString().endsWith(".json")) {
-                        AnimationManager.load(file, builder);
+                        AnimationManager.load(file, animations);
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -185,7 +194,7 @@ public class AnimationManager implements PreparableReloadListener {
             LOGGER.warn("Failed to load animations: {}", e.getMessage());
         }
 
-        return builder.build();
+        return animations;
     }
 
     public void handleUpdateAnimations(ClientUpdateAnimationPacket packet) {
@@ -202,7 +211,7 @@ public class AnimationManager implements PreparableReloadListener {
 
     private static void load(
             Path path,
-            ImmutableMap.Builder<ResourceLocation, Animation> builder
+            List<Pair<ResourceLocation, Animation[]>> list
     ) {
         try (Reader reader = Files.newBufferedReader(path)) {
             JsonObject object = JsonParser.parseReader(reader).getAsJsonObject();
@@ -212,9 +221,10 @@ public class AnimationManager implements PreparableReloadListener {
             Animation[] animations = Animation.serialize(object);
 
             LOGGER.debug("Load External Animation: {}", name);
-            for (Animation animation : animations) {
-                builder.put(new ResourceLocation("external", animation.getType().path + name), animation);
-            }
+            list.add(Pair.of(
+                    new ResourceLocation("external", name),
+                    animations
+            ));
         } catch (RuntimeException | IOException e) {
             LOGGER.warn("Failed to read resource {}", path, e);
         }

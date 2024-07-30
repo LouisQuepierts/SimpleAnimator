@@ -1,6 +1,7 @@
 package net.quepierts.simple_animator.animation;
 
 import com.ibm.icu.impl.Pair;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,5 +14,7 @@ public class InteractionHandler {
         requests = new HashMap<>();
     }
 
+    public void request(UUID requester, UUID receiver, ResourceLocation location) {
 
+    }
 }
