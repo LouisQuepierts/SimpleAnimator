@@ -1,8 +1,8 @@
-package net.quepierts.simple_animator.core.animation;
+package net.quepierts.simple_animator.core.common.animation;
 
 import net.minecraft.resources.ResourceLocation;
 import net.quepierts.simple_animator.core.SimpleAnimator;
-import net.quepierts.simple_animator.core.network.packet.AnimatorPacket;
+import net.quepierts.simple_animator.core.network.packet.AnimatorDataPacket;
 
 import java.util.UUID;
 
@@ -11,6 +11,7 @@ public class Animator {
     protected final UUID uuid;
 
     protected ResourceLocation animationLocation;
+    protected Animation animation;
 
     protected AnimationState curState;
     protected AnimationState nextState;
@@ -26,22 +27,31 @@ public class Animator {
         this.timer = 0.0f;
     }
 
-    public void sync(AnimatorPacket packet) {
+    public void sync(AnimatorDataPacket packet) {
         SimpleAnimator.LOGGER.info("Update: {} {} ,", this.getClass().getSimpleName(), packet);
         this.animationLocation = packet.animationLocation;
+        this.animation = SimpleAnimator.getInstance().getProxy().getAnimationManager().getAnimation(packet.animationLocation);
         this.curState = packet.curState;
         this.nextState = packet.nextState;
         this.procState = packet.procState;
         this.timer = packet.timer;
     }
 
-    public void play(ResourceLocation location) {
+    public boolean play(ResourceLocation location) {
+        if (this.animation != null && !this.animation.isAbortable())
+            return false;
+
         this.animationLocation = location;
+        this.animation = SimpleAnimator.getInstance().getProxy().getAnimationManager().getAnimation(location);
         this.timer = 0;
+        return true;
     }
 
-    public void stop() {
+    public boolean stop() {
+        if (this.animation == null || !this.animation.isAbortable())
+            return false;
         this.timer = 0;
+        return true;
     }
 
     public void terminate() {
@@ -55,6 +65,10 @@ public class Animator {
 
     public ResourceLocation getAnimationLocation() {
         return animationLocation;
+    }
+
+    public Animation getAnimation() {
+        return animation;
     }
 
     public AnimationState getCurState() {
@@ -75,11 +89,12 @@ public class Animator {
 
     public void reset() {
         this.timer = 0;
+        this.animation = null;
         this.animationLocation = EMPTY;
     }
 
     public boolean isRunning() {
-        return !animationLocation.equals(EMPTY);
+        return !animationLocation.equals(EMPTY) && this.animation != null;
     }
 
     public enum ProcessState {

@@ -1,4 +1,4 @@
-package net.quepierts.simple_animator.core.animation;
+package net.quepierts.simple_animator.core.common.animation;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
@@ -14,8 +14,8 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.quepierts.simple_animator.core.network.ModNetwork;
-import net.quepierts.simple_animator.core.network.packet.data.ClientUpdateAnimationPacket;
-import net.quepierts.simple_animator.core.network.packet.data.ClientUpdateInteractionPacket;
+import net.quepierts.simple_animator.core.network.packet.batch.ClientUpdateAnimationPacket;
+import net.quepierts.simple_animator.core.network.packet.batch.ClientUpdateInteractionPacket;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;

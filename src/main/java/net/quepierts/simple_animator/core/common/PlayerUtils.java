@@ -25,15 +25,15 @@ public class PlayerUtils {
         return (float) Math.toRadians(normalizeAngle((float) Math.toDegrees(rad)));
     }
 
-    public static Vec3 getRelativePosition(Player player, double forwards, double left) {
-        Vec2 vec2 = new Vec2(0, player.getYRot());
+    public static Vec3 getRelativePosition(Player player, double forward, double left) {
+        Vec2 vec2 = new Vec2(0, player.yBodyRot);
         Vec3 vec3 = player.position();
         float f = Mth.cos((vec2.y + 90.0F) * ((float)Math.PI / 180F));
         float f1 = Mth.sin((vec2.y + 90.0F) * ((float)Math.PI / 180F));
         Vec3 vec31 = new Vec3(f, 0, f1);
         Vec3 vec33 = new Vec3(-f1, 0, f);
-        double d0 = vec31.x * forwards + vec33.x * left;
-        double d2 = vec31.z * forwards + vec33.z * left;
+        double d0 = vec31.x * forward + vec33.x * left;
+        double d2 = vec31.z * forward + vec33.z * left;
         return new Vec3(vec3.x + d0, vec3.y, vec3.z + d2);
     }
 
@@ -41,5 +41,9 @@ public class PlayerUtils {
         double x = dest.x - src.x;
         double z = dest.z - src.z;
         return x * x + z * z;
+    }
+
+    public static boolean inSameDimension(Player a, Player b) {
+        return a.level() == b.level();
     }
 }

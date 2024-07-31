@@ -1,4 +1,4 @@
-package net.quepierts.simple_animator.core.animation;
+package net.quepierts.simple_animator.core.common.animation;
 
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
@@ -29,7 +29,7 @@ public class AnimationSection {
 
     private final EnumMap<ModelBone, BoneData> keyFrames;
 
-    public static AnimationSection fromJsonObject(JsonObject json, String prefix) {
+    public static AnimationSection fromJsonObject(JsonObject json, Animation.Type type) {
         if (json == null)
             return null;
 
@@ -47,9 +47,9 @@ public class AnimationSection {
 
         for (Map.Entry<String, JsonElement> entry : bones.entrySet()) {
             final String key = entry.getKey();
-            if (!key.startsWith(prefix))
+            if (!key.startsWith(type.prefix))
                 continue;
-            ModelBone bone = key.equals(prefix) ? ModelBone.ROOT : ModelBone.fromString(key.substring(prefix.length() + 1));
+            ModelBone bone = ModelBone.fromString(key.substring(type.prefix.length() + 1));
 
             if (bone != null) {
                 KeyFrame[] rotation = getRotation(entry.getValue().getAsJsonObject().get("rotation"), bone, length);

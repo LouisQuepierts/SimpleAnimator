@@ -9,25 +9,25 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.quepierts.simple_animator.core.animation.ModelBone;
-import net.quepierts.simple_animator.core.animation.Animation;
-import net.quepierts.simple_animator.core.animation.Animator;
 import net.quepierts.simple_animator.core.client.state.IAnimationState;
 import net.quepierts.simple_animator.core.common.PlayerUtils;
-import net.quepierts.simple_animator.core.SimpleAnimator;
-import net.quepierts.simple_animator.core.animation.AnimationState;
+import net.quepierts.simple_animator.core.common.animation.AnimationState;
+import net.quepierts.simple_animator.core.common.animation.Animator;
+import net.quepierts.simple_animator.core.common.animation.ModelBone;
 import net.quepierts.simple_animator.core.network.ModNetwork;
-import net.quepierts.simple_animator.core.network.packet.AnimatorPacket;
+import net.quepierts.simple_animator.core.network.packet.AnimatorDataPacket;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.UUID;
 
 public class ClientAnimator extends Animator {
     private static final ModelPart ROOT = new ModelPart(Collections.EMPTY_LIST, Collections.EMPTY_MAP);
     public Player player;
-    private Animation animation;
+    //private Animation animation;
     private final EnumMap<ModelBone, Cache> cache;
     private boolean processed = false;
     private boolean shouldUpdate = false;
@@ -44,13 +44,7 @@ public class ClientAnimator extends Animator {
         }
     }
 
-    @Override
-    public void sync(AnimatorPacket packet) {
-        super.sync(packet);
-        this.animation = SimpleAnimator.getInstance().getProxy().getAnimationManager().getAnimation(animationLocation);
-    }
-
-    public void update(AnimatorPacket packet) {
+    public void update(AnimatorDataPacket packet) {
         if (!isLocalPlayer())
             return;
 
@@ -58,15 +52,15 @@ public class ClientAnimator extends Animator {
     }
 
     @Override
-    public void play(ResourceLocation location) {
-        super.play(location);
+    public boolean play(ResourceLocation location) {
         if (this.animation == null)
             processed = false;
 
-        this.animation = SimpleAnimator.getInstance().getProxy().getAnimationManager().getAnimation(location);
+        if (!super.play(location))
+            return false;
 
         if (this.animation == null)
-            return;
+            return false;
 
         this.nextState = this.animation.hasEnterAnimation() ? AnimationState.ENTER : AnimationState.LOOP;
         this.procState = ProcessState.TRANSFER;
@@ -77,19 +71,18 @@ public class ClientAnimator extends Animator {
             assert localPlayer != null;
             this.player = localPlayer.level().getPlayerByUUID(uuid);
         }
+
+        return true;
     }
 
-    @Override
-    public boolean isRunning() {
-        return this.animation != null && super.isRunning();
-    }
-
-    public void stop() {
-        super.stop();
+    public boolean stop() {
+        if (!super.stop())
+            return false;
         this.timer = 0;
         this.nextState = this.animation.hasExitAnimation() ? AnimationState.EXIT : AnimationState.IDLE;
         this.procState = ProcessState.TRANSFER;
         this.processed = false;
+        return true;
     }
 
     public void tick(float time) {
@@ -116,7 +109,7 @@ public class ClientAnimator extends Animator {
                             impl.exit(this);
                             this.procState = ProcessState.TRANSFER;
                             this.shouldUpdate = false;
-                            this.update(new AnimatorPacket(this, false));
+                            this.update(new AnimatorDataPacket(this, false));
                         }
                     }
                     break;
@@ -174,10 +167,6 @@ public class ClientAnimator extends Animator {
         part.zRot = pose.zRot + rotation.z;
     }
 
-    public Animation getAnimation() {
-        return animation;
-    }
-
     public boolean canStop() {
         return curState == AnimationState.LOOP && nextState == AnimationState.LOOP;
     }
@@ -198,7 +187,6 @@ public class ClientAnimator extends Animator {
 
     public void reset() {
         super.reset();
-        this.animation = null;
         this.processed = false;
 
         this.cache.forEach((bone, cache) -> {
@@ -206,7 +194,7 @@ public class ClientAnimator extends Animator {
             cache.rotation.set(0);
         });
 
-        this.update(new AnimatorPacket(this, false));
+        this.update(new AnimatorDataPacket(this, false));
     }
 
     public void processRoot(PoseStack poseStack) {

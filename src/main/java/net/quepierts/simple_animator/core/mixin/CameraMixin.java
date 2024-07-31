@@ -1,13 +1,16 @@
 package net.quepierts.simple_animator.core.mixin;
 
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.quepierts.simple_animator.core.SimpleAnimator;
-import net.quepierts.simple_animator.core.animation.ModelBone;
 import net.quepierts.simple_animator.core.client.ClientAnimator;
-import net.quepierts.simple_animator.core.client.ClientAnimatorManager;
+import net.quepierts.simple_animator.core.common.animation.ModelBone;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -36,16 +39,29 @@ public abstract class CameraMixin {
         if (detached)
             return;
 
-        ClientAnimator animator = ((ClientAnimatorManager) SimpleAnimator.getInstance().getProxy().getAnimatorManager()).getLocalAnimator();
+        ClientAnimator animator = SimpleAnimator.getInstance().getClient().getClientAnimatorManager().getLocalAnimator();
 
         if (animator.isRunning()) {
             ClientAnimator.Cache root = animator.getCache(ModelBone.ROOT);
             ClientAnimator.Cache head = animator.getCache(ModelBone.HEAD);
+
+            final float left = (root.position().x + head.position().x) / -16.0f;
+            final float up = (root.position().y + head.position().y) / 16.0f;
+            final float forward = (root.position().z + head.position().z) / -16.0f;
+
+            LocalPlayer player = Minecraft.getInstance().player;
+            Vec2 vec2 = new Vec2(0, player.yBodyRot);
+            float f = Mth.cos((vec2.y + 90.0F) * ((float)Math.PI / 180F));
+            float f1 = Mth.sin((vec2.y + 90.0F) * ((float)Math.PI / 180F));
+            Vec3 vec31 = new Vec3(f, 0, f1);
+            Vec3 vec33 = new Vec3(-f1, 0, f);
+            double d0 = vec31.x * forward + vec33.x * left;
+            double d2 = vec31.z * forward + vec33.z * left;
+
             this.setPosition(
-                    (root.position().x + head.position().x) / 16.0f + position.x,
-                    (root.position().y + head.position().y) / 16.0f + position.y,
-                    (root.position().z + head.position().z) / 16.0f + position.z
-            );
+                    this.position.x + d0,
+                    this.position.y + up,
+                    this.position.z + d2);
             ci.cancel();
         }
     }

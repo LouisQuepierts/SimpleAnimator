@@ -12,9 +12,10 @@ import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.quepierts.simple_animator.core.animation.AnimationManager;
-import net.quepierts.simple_animator.core.animation.Animator;
-import net.quepierts.simple_animator.core.common.AnimatorManager;
+import net.quepierts.simple_animator.core.common.animation.AnimationManager;
+import net.quepierts.simple_animator.core.common.animation.Animator;
+import net.quepierts.simple_animator.core.common.animation.InteractionManager;
+import net.quepierts.simple_animator.core.common.animation.AnimatorManager;
 import net.quepierts.simple_animator.core.common.command.AnimateCommand;
 import net.quepierts.simple_animator.core.common.command.InteractCommand;
 import net.quepierts.simple_animator.core.network.ModNetwork;
@@ -27,12 +28,12 @@ public class CommonProxy {
 
     protected AnimatorManager<? extends Animator> animatorManager;
     protected AnimationManager animationManager;
+    protected InteractionManager interactionManager;
 
     public CommonProxy() {
-        if (!isClient()) {
-            animatorManager = new AnimatorManager<>();
-        }
+        this.animatorManager = new AnimatorManager<>();
         this.animationManager = new AnimationManager();
+        this.interactionManager = new InteractionManager();
     }
 
     public void setup(IEventBus bus) {
@@ -56,6 +57,10 @@ public class CommonProxy {
 
     public AnimationManager getAnimationManager() {
         return animationManager;
+    }
+
+    public InteractionManager getInteractionManager() {
+        return interactionManager;
     }
 
     private class ForgeHandler {

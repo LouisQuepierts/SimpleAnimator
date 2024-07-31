@@ -2,17 +2,16 @@ package net.quepierts.simple_animator.core.network.packet;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
 import net.quepierts.simple_animator.core.SimpleAnimator;
-import net.quepierts.simple_animator.core.animation.Animator;
-import net.quepierts.simple_animator.core.animation.AnimationState;
-import net.quepierts.simple_animator.core.network.BiPacket;
+import net.quepierts.simple_animator.core.common.animation.Animator;
+import net.quepierts.simple_animator.core.common.animation.AnimationState;
 import net.quepierts.simple_animator.core.network.ModNetwork;
 
 import java.util.UUID;
 
-public class AnimatorPacket extends BiPacket {
-    private final UUID uuid;
+public class AnimatorDataPacket extends UserPacket {
     public final ResourceLocation animationLocation;
     public final AnimationState curState;
     public final AnimationState nextState;
@@ -21,8 +20,8 @@ public class AnimatorPacket extends BiPacket {
 
     public final boolean publish;
 
-    public AnimatorPacket(FriendlyByteBuf byteBuf) {
-        this.uuid = byteBuf.readUUID();
+    public AnimatorDataPacket(FriendlyByteBuf byteBuf) {
+        super(byteBuf);
         this.animationLocation = byteBuf.readResourceLocation();
         this.curState = byteBuf.readEnum(AnimationState.class);
         this.nextState = byteBuf.readEnum(AnimationState.class);
@@ -31,8 +30,8 @@ public class AnimatorPacket extends BiPacket {
         this.publish = byteBuf.readBoolean();
     }
 
-    public AnimatorPacket(UUID uuid, ResourceLocation animation, AnimationState curState, AnimationState nextState, Animator.ProcessState proState, float timer, boolean publish) {
-        this.uuid = uuid;
+    public AnimatorDataPacket(UUID uuid, ResourceLocation animation, AnimationState curState, AnimationState nextState, Animator.ProcessState proState, float timer, boolean publish) {
+        super(uuid);
         this.animationLocation = animation;
         this.curState = curState;
         this.nextState = nextState;
@@ -41,8 +40,12 @@ public class AnimatorPacket extends BiPacket {
         this.publish = publish;
     }
 
-    public AnimatorPacket(Animator animator, boolean publish) {
-        this.uuid = animator.getUuid();
+    public AnimatorDataPacket(Animator animator) {
+        this(animator, false);
+    }
+
+    public AnimatorDataPacket(Animator animator, boolean publish) {
+        super(animator.getUuid());
         this.animationLocation = animator.getAnimationLocation();
         this.curState = animator.getCurState();
         this.nextState = animator.getNextState();
@@ -53,7 +56,7 @@ public class AnimatorPacket extends BiPacket {
 
     @Override
     public void write(FriendlyByteBuf buffer) {
-        buffer.writeUUID(this.uuid);
+        buffer.writeUUID(this.owner);
         buffer.writeResourceLocation(this.animationLocation);
         buffer.writeEnum(this.curState);
         buffer.writeEnum(this.nextState);
@@ -63,21 +66,21 @@ public class AnimatorPacket extends BiPacket {
     }
 
     @Override
-    public void update(NetworkEvent.Context context) {
-        SimpleAnimator.getInstance().getProxy().getAnimatorManager().get(this.uuid).sync(this);
+    public void update(NetworkEvent.Context context, ServerPlayer sender) {
+        SimpleAnimator.getInstance().getProxy().getAnimatorManager().get(this.owner).sync(this);
         if (publish)
             ModNetwork.sendToPlayers(this, context.getSender());
     }
 
     @Override
     public void sync(NetworkEvent.Context context) {
-        SimpleAnimator.getInstance().getProxy().getAnimatorManager().get(uuid).sync(this);
+        SimpleAnimator.getInstance().getProxy().getAnimatorManager().get(owner).sync(this);
     }
 
     @Override
     public String toString() {
         return "AnimatorPacket{" +
-                "uuid=" + uuid +
+                "uuid=" + owner +
                 ", animationLocation=" + animationLocation +
                 ", curState=" + curState +
                 ", nextState=" + nextState +

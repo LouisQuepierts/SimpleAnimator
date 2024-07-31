@@ -1,4 +1,4 @@
-package net.quepierts.simple_animator.core.animation;
+package net.quepierts.simple_animator.core.common.animation;
 
 import com.google.common.collect.ImmutableMap;
 

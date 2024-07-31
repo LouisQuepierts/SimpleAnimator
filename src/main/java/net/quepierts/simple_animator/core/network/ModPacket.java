@@ -1,35 +1,29 @@
 package net.quepierts.simple_animator.core.network;
 
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import net.quepierts.simple_animator.core.SimpleAnimator;
-import net.quepierts.simple_animator.core.network.packet.AnimatorPacket;
-import net.quepierts.simple_animator.core.network.packet.data.ClientUpdateAnimationPacket;
-import net.quepierts.simple_animator.core.network.packet.PlayPacket;
-import net.quepierts.simple_animator.core.network.packet.StopPacket;
-import net.quepierts.simple_animator.core.network.packet.data.ClientUpdateInteractionPacket;
+import net.quepierts.simple_animator.core.network.packet.*;
+import net.quepierts.simple_animator.core.network.packet.batch.ClientUpdateAnimationPacket;
+import net.quepierts.simple_animator.core.network.packet.batch.ClientUpdateAnimatorPacket;
+import net.quepierts.simple_animator.core.network.packet.batch.ClientUpdateInteractionPacket;
+
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public enum ModPacket {
-    ANIMATOR_UPDATE(AnimatorPacket.class, AnimatorPacket::new, AnimatorPacket::handle),
-    PLAY_UPDATE(PlayPacket.class, PlayPacket::new, PlayPacket::handle),
-    STOP_UPDATE(StopPacket.class, StopPacket::new, StopPacket::handle),
+    ANIMATOR_UPDATE(AnimatorDataPacket.class, AnimatorDataPacket::new, AnimatorDataPacket::handle),
+    ANIMATOR_PLAY(AnimatorPlayPacket.class, AnimatorPlayPacket::new, AnimatorPlayPacket::handle),
+    ANIMATOR_STOP(AnimatorStopPacket.class, AnimatorStopPacket::new, AnimatorStopPacket::handle),
+    INTERACT_INVITE(InteractInvitePacket.class, InteractInvitePacket::new, InteractInvitePacket::handle),
+    INTERACT_ACCEPT(InteractAcceptPacket.class, InteractAcceptPacket::new, InteractAcceptPacket::handle),
+    INTERACT_CANCEL(InteractCancelPacket.class, InteractCancelPacket::new, InteractCancelPacket::handle),
     CLIENT_UPDATE_ANIMATION(ClientUpdateAnimationPacket.class, ClientUpdateAnimationPacket::new),
-    CLIENT_UPDATE_INTERACTION(ClientUpdateInteractionPacket.class, ClientUpdateInteractionPacket::new);
+    CLIENT_UPDATE_INTERACTION(ClientUpdateInteractionPacket.class, ClientUpdateInteractionPacket::new),
+    CLIENT_UPDATE_ANIMATOR(ClientUpdateAnimatorPacket.class, ClientUpdateAnimatorPacket::new);
     private final PacketType<?> packet;
-
-    <T extends IPacket> ModPacket(
-            Class<T> type, 
-            Function<FriendlyByteBuf, T> decoder,
-            BiConsumer<T, NetworkEvent.Context> handler,
-            NetworkDirection direction
-    ) {
-        packet = new PacketType<>(type, decoder, handler, direction);
-    }
 
     <T extends IPacket> ModPacket(
             Class<T> type,

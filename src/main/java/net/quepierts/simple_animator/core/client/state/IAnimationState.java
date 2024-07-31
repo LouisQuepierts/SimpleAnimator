@@ -2,7 +2,7 @@ package net.quepierts.simple_animator.core.client.state;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.quepierts.simple_animator.core.animation.AnimationState;
+import net.quepierts.simple_animator.core.common.animation.AnimationState;
 import net.quepierts.simple_animator.core.client.ClientAnimator;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
@@ -40,8 +40,6 @@ public interface IAnimationState {
         static {
             IMPL = new IAnimationState[]{
                     new StateIdle(),
-                    new StateRequest(),
-                    new StateWait(),
                     new StateEnter(),
                     new StateLoop(),
                     new StateExit()

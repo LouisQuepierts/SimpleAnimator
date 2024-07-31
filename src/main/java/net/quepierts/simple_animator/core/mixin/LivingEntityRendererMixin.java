@@ -7,7 +7,6 @@ import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.LivingEntity;
 import net.quepierts.simple_animator.core.SimpleAnimator;
 import net.quepierts.simple_animator.core.client.ClientAnimator;
-import net.quepierts.simple_animator.core.client.ClientAnimatorManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -24,7 +23,7 @@ public class LivingEntityRendererMixin<T extends LivingEntity, M extends EntityM
             )
     )
     public void translateRoot(T pEntity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight, CallbackInfo ci) {
-        ClientAnimator animator = ((ClientAnimatorManager) SimpleAnimator.getInstance().getProxy().getAnimatorManager()).getAnimator(pEntity.getUUID());
+        ClientAnimator animator = SimpleAnimator.getInstance().getClient().getClientAnimatorManager().getAnimator(pEntity.getUUID());
 
         if (animator != null && animator.isRunning()) {
             animator.processRoot(pPoseStack);

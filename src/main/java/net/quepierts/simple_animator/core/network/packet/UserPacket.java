@@ -6,21 +6,21 @@ import net.quepierts.simple_animator.core.network.BiPacket;
 import java.util.UUID;
 
 public abstract class UserPacket extends BiPacket {
-    protected final UUID uuid;
+    protected final UUID owner;
 
     public UserPacket(FriendlyByteBuf byteBuf) {
-        this.uuid = byteBuf.readUUID();
+        this.owner = byteBuf.readUUID();
     }
 
     public UserPacket(UUID uuid) {
-        this.uuid = uuid;
+        this.owner = uuid;
     }
 
     public void write(FriendlyByteBuf buffer) {
-        buffer.writeUUID(this.uuid);
+        buffer.writeUUID(this.owner);
     }
 
-    public UUID getUuid() {
-        return uuid;
+    public UUID getOwner() {
+        return owner;
     }
 }

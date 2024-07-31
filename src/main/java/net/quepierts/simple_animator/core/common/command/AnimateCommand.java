@@ -12,10 +12,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.GameType;
 import net.quepierts.simple_animator.core.SimpleAnimator;
-import net.quepierts.simple_animator.core.animation.Animator;
+import net.quepierts.simple_animator.core.common.animation.Animator;
 import net.quepierts.simple_animator.core.network.ModNetwork;
-import net.quepierts.simple_animator.core.network.packet.PlayPacket;
-import net.quepierts.simple_animator.core.network.packet.StopPacket;
+import net.quepierts.simple_animator.core.network.packet.AnimatorPlayPacket;
+import net.quepierts.simple_animator.core.network.packet.AnimatorStopPacket;
 
 import java.util.UUID;
 
@@ -38,7 +38,7 @@ public class AnimateCommand {
             Animator animator = SimpleAnimator.getInstance().getProxy().getAnimatorManager().get(uuid);
 
             if (animator.isRunning()) {
-                ModNetwork.sendToAllPlayers(new StopPacket(uuid), player);
+                ModNetwork.sendToAllPlayers(new AnimatorStopPacket(uuid), player);
             }
         }
         return 1;
@@ -62,7 +62,7 @@ public class AnimateCommand {
             ResourceLocation location = ResourceLocationArgument.getId(context, "animation");
             UUID uuid = player.getUUID();
             SimpleAnimator.getInstance().getProxy().getAnimatorManager().get(uuid).play(location);
-            ModNetwork.sendToAllPlayers(new PlayPacket(uuid, location), player);
+            ModNetwork.sendToAllPlayers(new AnimatorPlayPacket(uuid, location), player);
             return 1;
         }
         return 0;

@@ -1,3 +1,5 @@
 {
-  "animator.commands.failed.invalid_source": "Invalid execute source for command"
+  "animator.commands.failed.invalid_source": "Invalid execute source for command",
+  "animator.commands.failed.same_player": "You cannot get request from your self",
+  "animator.commands.failed.nonexistent_request": "Nonexistent request"
 }

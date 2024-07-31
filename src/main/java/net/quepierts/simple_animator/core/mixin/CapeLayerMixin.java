@@ -14,9 +14,8 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.quepierts.simple_animator.core.SimpleAnimator;
-import net.quepierts.simple_animator.core.animation.ModelBone;
+import net.quepierts.simple_animator.core.common.animation.ModelBone;
 import net.quepierts.simple_animator.core.client.ClientAnimator;
-import net.quepierts.simple_animator.core.client.ClientAnimatorManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -39,7 +38,7 @@ public abstract class CapeLayerMixin extends RenderLayer<AbstractClientPlayer, P
             cancellable = true
     )
     public void process(PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight, AbstractClientPlayer pLivingEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTicks, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch, CallbackInfo ci) {
-        ClientAnimator animator = ((ClientAnimatorManager) SimpleAnimator.getInstance().getProxy().getAnimatorManager()).getAnimator(pLivingEntity.getUUID());
+        ClientAnimator animator = SimpleAnimator.getInstance().getClient().getClientAnimatorManager().getAnimator(pLivingEntity.getUUID());
 
         if (animator == null || !animator.isRunning()) {
             return;

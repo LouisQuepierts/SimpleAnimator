@@ -1,4 +1,4 @@
-package net.quepierts.simple_animator.core.animation;
+package net.quepierts.simple_animator.core.common.animation;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -38,8 +38,7 @@ public class Animation {
     public static Animation[] serialize(JsonObject json) {
         JsonObject object = json.getAsJsonObject("animations");
 
-        JsonObject main = object.getAsJsonObject(KEY_LOOP);
-        if (main == null)
+        if (!object.has(KEY_LOOP))
             throw new RuntimeException("Cannot accept animation without \"main\"!");
 
         boolean override = getBoolean(json, "override", true);
@@ -47,14 +46,14 @@ public class Animation {
         boolean abortable = getBoolean(json, "abortable", true);
 
         Animation[] animations;
-        if (isInteractiveAnimation(main)) {
+        if (isInteractiveAnimation(object)) {
             animations = new Animation[3];
 
-            final AnimationSection request = AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_REQUEST), PREFIX_REQUESTER);
+            final AnimationSection request = AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_REQUEST), Type.INVITE);
             if (request == null)
                 throw new RuntimeException("Required animation: \"request\"!");
 
-            final AnimationSection waiting = AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_WAITING), PREFIX_REQUESTER);
+            final AnimationSection waiting = AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_WAITING), Type.INVITE);
             if (waiting == null)
                 throw new RuntimeException("Required animation: \"waiting\"!");
 
@@ -66,23 +65,23 @@ public class Animation {
                     override, movable, true, Type.INVITE
             );
             animations[1] = new Animation(
-                    AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_ENTER), PREFIX_REQUESTER),
-                    AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_LOOP), PREFIX_REQUESTER),
-                    AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_EXIT), PREFIX_REQUESTER),
-                    override, movable, abortable, Type.REQUESTER
+                    AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_ENTER), Type.REQUESTER),
+                    AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_LOOP), Type.REQUESTER),
+                    AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_EXIT), Type.REQUESTER),
+                    override, movable, false, Type.REQUESTER
             );
             animations[2] = new Animation(
-                    AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_ENTER), PREFIX_RECEIVER),
-                    AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_LOOP), PREFIX_RECEIVER),
-                    AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_EXIT), PREFIX_RECEIVER),
-                    override, movable, abortable, Type.RECEIVER
+                    AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_ENTER), Type.RECEIVER),
+                    AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_LOOP), Type.RECEIVER),
+                    AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_EXIT), Type.RECEIVER),
+                    override, movable, false, Type.RECEIVER
 
             );
         } else {
             animations = new Animation[] {
                     new Animation(
                             AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_ENTER)),
-                            AnimationSection.fromJsonObject(main),
+                            AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_LOOP)),
                             AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_EXIT)),
                             override, movable, abortable, Type.SIMPLE
                     )
@@ -110,7 +109,7 @@ public class Animation {
     }
 
     private static boolean isInteractiveAnimation(JsonObject json) {
-        return json.getAsJsonObject("bones").has("requester");
+        return json.has("request");
     }
 
     private static boolean getBoolean(JsonObject json, String key, boolean def) {
@@ -196,47 +195,18 @@ public class Animation {
                 override, movable, abortable, type);
     }
 
-    record AnimationSet(
-            AnimationSection request,
-            AnimationSection waiting,
-            AnimationSection enter,
-            AnimationSection main,
-            AnimationSection exit
-    ) {
-        public static void toNetwork(FriendlyByteBuf byteBuf, AnimationSet set) {
-            byteBuf.writeOptional(Optional.ofNullable(set.request), AnimationSection::toNetwork);
-            byteBuf.writeOptional(Optional.ofNullable(set.waiting), AnimationSection::toNetwork);
-            byteBuf.writeOptional(Optional.ofNullable(set.enter), AnimationSection::toNetwork);
-            byteBuf.writeOptional(Optional.ofNullable(set.main), AnimationSection::toNetwork);
-            byteBuf.writeOptional(Optional.ofNullable(set.exit), AnimationSection::toNetwork);
-        }
-
-        public static AnimationSet fromNetwork(FriendlyByteBuf byteBuf) {
-            final Optional<AnimationSection> request = byteBuf.readOptional(AnimationSection::fromNetwork);
-            final Optional<AnimationSection> waiting = byteBuf.readOptional(AnimationSection::fromNetwork);
-            final Optional<AnimationSection> enter = byteBuf.readOptional(AnimationSection::fromNetwork);
-            final Optional<AnimationSection> main = byteBuf.readOptional(AnimationSection::fromNetwork);
-            final Optional<AnimationSection> exit = byteBuf.readOptional(AnimationSection::fromNetwork);
-            return new AnimationSet(
-                    request.orElse(null),
-                    waiting.orElse(null),
-                    enter.orElse(null),
-                    main.orElse(null),
-                    exit.orElse(null)
-            );
-        }
-    }
-
     public enum Type {
-        SIMPLE("simple/"),
-        INVITE("invite/"),
-        REQUESTER("requester/"),
-        RECEIVER("receiver/");
+        SIMPLE("simple/", ""),
+        INVITE("invite/", "requester"),
+        REQUESTER("requester/", "requester"),
+        RECEIVER("receiver/", "receiver");
 
         public final String path;
+        public final String prefix;
 
-        Type(String path) {
+        Type(String path, String prefix) {
             this.path = path;
+            this.prefix = prefix;
         }
     }
 }
