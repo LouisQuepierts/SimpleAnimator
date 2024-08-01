@@ -23,7 +23,6 @@ import net.quepierts.simple_animator.core.network.packet.InteractCancelPacket;
 
 import java.util.UUID;
 
-@OnlyIn(Dist.CLIENT)
 public class ClientProxy extends CommonProxy {
     public final ClientPlayerNavigator navigator;
 
@@ -84,7 +83,7 @@ public class ClientProxy extends CommonProxy {
 
         @SubscribeEvent
         public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-            if (navigator.isNavigating() && event.phase == TickEvent.Phase.END && event.player instanceof LocalPlayer player) {
+            if (navigator.isNavigating() && event.phase == TickEvent.Phase.END && event.player instanceof LocalPlayer) {
                 navigator.tick();
             }
         }

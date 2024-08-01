@@ -10,6 +10,7 @@
     "CameraMixin",
     "CapeLayerMixin",
     "EntityMixin",
+    "ItemInHandRendererMixin",
     "LivingEntityRendererMixin",
     "MouseHandlerMixin",
     "PlayerModelMixin",

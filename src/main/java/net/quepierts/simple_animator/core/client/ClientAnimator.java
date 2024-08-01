@@ -117,7 +117,7 @@ public class ClientAnimator extends Animator {
         }
     }
 
-    public void process(PlayerModel<AbstractClientPlayer> model) {
+    public void update(PlayerModel<AbstractClientPlayer> model) {
         if (this.animation == null)
             return;
 
@@ -135,7 +135,10 @@ public class ClientAnimator extends Animator {
             shouldUpdate = false;
             processed = true;
         }
+    }
 
+    public void process(PlayerModel<AbstractClientPlayer> model) {
+        this.update(model);
         process(ModelBone.HEAD, model.head);
         process(ModelBone.BODY, model.body);
         process(ModelBone.LEFT_ARM, model.leftArm);
