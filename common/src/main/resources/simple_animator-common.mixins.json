@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.quepierts.simpleanimator.core.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "PlayerMixin"
+  ],
+  "client": [
+    "CameraMixin",
+    "CapeLayerMixin",
+    "EntityMixin",
+    "ItemInHandRendererMixin",
+    "LivingEntityRendererMixin",
+    "PlayerModelMixin",
+    "PlayerRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

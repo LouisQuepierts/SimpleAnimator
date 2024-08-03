@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "simple_animator",
+  "version": "${version}",
+
+  "name": "SimpleAnimator",
+  "description": "",
+  "authors": [],
+  "contact": {},
+
+  "license": "MIT",
+  "icon": "icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.quepierts.simpleanimator.fabric.SimpleAnimatorFabric"
+    ]
+  },
+  "mixins": [
+    "simple_animator.mixins.json",
+    "simple_animator-common.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.2",
+    "minecraft": ">=1.20"
+  }
+}
