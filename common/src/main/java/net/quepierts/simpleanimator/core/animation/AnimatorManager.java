@@ -24,6 +24,7 @@ public class AnimatorManager<T extends Animator> {
         return animators.get(uuid);
     }
 
+    @SuppressWarnings("unchecked")
     public T createIfAbsent(UUID uuid) {
         return animators.computeIfAbsent(uuid, (uid) -> (T) new Animator(uid));
     }

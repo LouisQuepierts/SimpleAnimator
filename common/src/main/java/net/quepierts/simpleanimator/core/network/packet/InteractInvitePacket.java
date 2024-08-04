@@ -49,7 +49,6 @@ public class InteractInvitePacket extends UserPacket {
 
     @Override
     public void sync() {
-        SimpleAnimator.LOGGER.info("Invite Sync");
         ClientLevel level = Minecraft.getInstance().level;
         Player requester = level.getPlayerByUUID(this.owner);
         Player target = level.getPlayerByUUID(this.target);

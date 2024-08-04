@@ -1,9 +1,7 @@
 package net.quepierts.simpleanimator.forge.network;
 
-import net.minecraft.client.multiplayer.ClientChunkCache;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;

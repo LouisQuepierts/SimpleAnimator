@@ -65,6 +65,7 @@ public class PlayerModelMixin<T extends LivingEntity> extends HumanoidModel<T> {
         this.rightLeg.resetPose();
     }
 
+    @SuppressWarnings("unchecked")
     @Inject(
             method = "setupAnim(Lnet/minecraft/world/entity/LivingEntity;FFFFF)V",
             at = @At(

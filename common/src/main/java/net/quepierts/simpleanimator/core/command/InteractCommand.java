@@ -24,7 +24,7 @@ import net.quepierts.simpleanimator.core.network.packet.InteractInvitePacket;
 import java.util.stream.Stream;
 
 public class InteractCommand {
-    private static final SuggestionProvider<CommandSourceStack> SUGGEST_INTERACTION = (context, builder) -> SharedSuggestionProvider.suggestResource(SimpleAnimator.getProxy().getAnimationManager().getInteractionNames(), builder);;
+    private static final SuggestionProvider<CommandSourceStack> SUGGEST_INTERACTION = (context, builder) -> SharedSuggestionProvider.suggestResource(SimpleAnimator.getProxy().getAnimationManager().getInteractionNames(), builder);
 
     private static final SuggestionProvider<CommandSourceStack> SUGGEST_PLAYER = ((context, builder) -> SharedSuggestionProvider.suggest(getPlayerNames(context.getSource()), builder));
 

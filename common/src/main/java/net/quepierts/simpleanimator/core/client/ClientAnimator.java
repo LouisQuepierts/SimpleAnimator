@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.UUID;
 
+@SuppressWarnings("unchecked")
 @Environment(EnvType.CLIENT)
 public class ClientAnimator extends Animator {
     private static final ModelPart ROOT = new ModelPart(Collections.EMPTY_LIST, Collections.EMPTY_MAP);

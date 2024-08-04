@@ -7,7 +7,6 @@ import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
 import net.quepierts.simpleanimator.api.IAnimateHandler;
 import net.quepierts.simpleanimator.api.IInteractHandler;
-import net.quepierts.simpleanimator.api.animation.Animator;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.animation.RequestHolder;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
@@ -59,8 +58,8 @@ public class LocalPlayerMixin {
 
             ClientAnimator animator = (ClientAnimator) ((IAnimateHandler) Minecraft.getInstance().player).simpleanimator$getAnimator();
 
-            if (animator.canStop() && !animator.getAnimation().isMovable()) {
-                if (animator.getAnimation().isAbortable()) {
+            if (animator.isRunning() && !animator.getAnimation().isMovable()) {
+                if (animator.getAnimation().isAbortable() && animator.canStop()) {
                     animator.stop();
                     SimpleAnimator.getNetwork().update(new AnimatorStopPacket(uuid));
                 }

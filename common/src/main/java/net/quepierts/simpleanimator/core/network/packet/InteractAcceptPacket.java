@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.quepierts.simpleanimator.api.IInteractHandler;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
-import net.quepierts.simpleanimator.core.proxy.CommonProxy;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;

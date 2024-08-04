@@ -6,23 +6,21 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 public class RequestHolder {
-    private final UUID owner;
     @Nullable private UUID target;
     @Nullable private ResourceLocation interaction;
 
     public RequestHolder(UUID uuid) {
-        this.owner = uuid;
     }
 
     public boolean hasRequest() {
         return this.target != null;
     }
 
-    public UUID getTarget() {
+    public @Nullable UUID getTarget() {
         return this.target;
     }
 
-    public ResourceLocation getInteraction() {
+    public @Nullable ResourceLocation getInteraction() {
         return this.interaction;
     }
 

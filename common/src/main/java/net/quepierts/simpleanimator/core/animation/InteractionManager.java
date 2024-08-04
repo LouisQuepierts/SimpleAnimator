@@ -49,7 +49,7 @@ public class InteractionManager {
     public boolean accept(Player requester, Player receiver) {
         RequestHolder request = this.requests.get(requester.getUUID());
 
-        if (request == null || !request.getTarget().equals(receiver.getUUID()))
+        if (request.hasRequest() || !request.getTarget().equals(receiver.getUUID()))
             return false;
 
         Vec3 position = PlayerUtils.getRelativePosition(requester, 1, 0);

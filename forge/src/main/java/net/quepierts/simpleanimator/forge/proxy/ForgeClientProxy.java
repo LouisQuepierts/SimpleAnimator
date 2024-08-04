@@ -9,13 +9,10 @@ import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.config.ModConfig;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.animation.ModelBone;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 import net.quepierts.simpleanimator.core.proxy.ClientProxy;
-import net.quepierts.simpleanimator.forge.config.ForgeCommonConfiguration;
 
 public class ForgeClientProxy {
     public static void setup() {

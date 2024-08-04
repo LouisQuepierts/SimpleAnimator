@@ -1,7 +1,6 @@
 package net.quepierts.simpleanimator.core.proxy;
 
 import net.quepierts.simpleanimator.core.client.ClientAnimatorManager;
-import net.quepierts.simpleanimator.core.client.ClientInteractionManager;
 import net.quepierts.simpleanimator.core.client.ClientPlayerNavigator;
 
 public class ClientProxy extends CommonProxy {

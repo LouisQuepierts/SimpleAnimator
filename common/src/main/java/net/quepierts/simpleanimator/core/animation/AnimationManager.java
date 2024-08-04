@@ -97,9 +97,7 @@ public class AnimationManager implements PreparableReloadListener {
     }
 
     private CompletableFuture<List<Pair<ResourceLocation, Animation[]>>> load(ResourceManager pResourceManager, Executor pBackgroundExecutor) {
-        return CompletableFuture.supplyAsync(() -> {
-            return ANIMATION_LISTER.listMatchingResourceStacks(pResourceManager);
-        }, pBackgroundExecutor).thenCompose(map -> {
+        return CompletableFuture.supplyAsync(() -> ANIMATION_LISTER.listMatchingResourceStacks(pResourceManager), pBackgroundExecutor).thenCompose(map -> {
             List<CompletableFuture<Pair<ResourceLocation, Animation[]>>> list = new ArrayList<>(map.size());
 
             for (Map.Entry<ResourceLocation, List<Resource>> entry : map.entrySet()) {
@@ -124,41 +122,6 @@ public class AnimationManager implements PreparableReloadListener {
                     .thenApply(result -> result.stream()
                             .filter(Objects::nonNull)
                             .collect(Collectors.toList())
-                    );
-        });
-    }
-
-    @Deprecated
-    private CompletableFuture<Map<ResourceLocation, Animation>> loadLegacy(ResourceManager pResourceManager, Executor pBackgroundExecutor) {
-        return CompletableFuture.supplyAsync(() -> {
-            return ANIMATION_LISTER.listMatchingResourceStacks(pResourceManager);
-        }, pBackgroundExecutor).thenCompose(map -> {
-            List<CompletableFuture<Pair<ResourceLocation, Animation[]>>> list = new ArrayList<>(map.size());
-
-            for (Map.Entry<ResourceLocation, List<Resource>> entry : map.entrySet()) {
-                ResourceLocation location = entry.getKey();
-                ResourceLocation resourceLocation = ANIMATION_LISTER.fileToId(location);
-
-                for (Resource resource : entry.getValue()) {
-                    list.add(CompletableFuture.supplyAsync(() -> {
-                        try (Reader reader = resource.openAsReader()) {
-                            Animation[] animations = Animation.fromStream(reader);
-                            LOGGER.info("Loaded animation {} from {} in data pack {}",  resourceLocation, location, resource.sourcePackId());
-                            return Pair.of(resourceLocation, animations);
-                        } catch (IOException e) {
-                            LOGGER.info("Couldn't read animation {} from {} in data pack {}", resourceLocation, location, resource.sourcePackId());
-                            return null;
-                        }
-                    }));
-                }
-            }
-
-            return Util.sequence(list)
-                    .thenApply(result -> result.stream()
-                            .filter(Objects::nonNull)
-                            .flatMap((Function<Pair<ResourceLocation, Animation[]>, Stream<Pair<ResourceLocation, Animation>>>) pair -> Arrays.stream(pair.getSecond())
-                                    .map(animation -> new Pair<>(pair.getFirst().withPrefix(animation.getType().path), animation)))
-                            .collect(Collectors.toUnmodifiableMap(Pair<ResourceLocation, Animation>::getFirst, Pair::getSecond))
                     );
         });
     }

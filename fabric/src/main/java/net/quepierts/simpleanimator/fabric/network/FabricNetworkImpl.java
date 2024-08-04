@@ -1,13 +1,10 @@
 package net.quepierts.simpleanimator.fabric.network;
 
 import com.google.common.collect.ImmutableMap;
-import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.FabricPacket;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.PacketType;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -35,14 +32,14 @@ public class FabricNetworkImpl implements INetwork {
 
     @Override
     public void sendToPlayer(IPacket packet, ServerPlayer player) {
-        if (!this.hasType(packet))
+        if (this.notExist(packet))
             return;
         ServerPlayNetworking.send(player, new FabricPacketImpl(packet));
     }
 
     @Override
     public void sendToAllPlayers(IPacket packet, ServerPlayer player) {
-        if (!this.hasType(packet))
+        if (this.notExist(packet))
             return;
 
         MinecraftServer server = player.getServer();
@@ -56,7 +53,7 @@ public class FabricNetworkImpl implements INetwork {
 
     @Override
     public void sendToPlayersExcept(IPacket packet, ServerPlayer... except) {
-        if (!this.hasType(packet))
+        if (this.notExist(packet))
             return;
 
         if (except.length == 0)
@@ -72,7 +69,7 @@ public class FabricNetworkImpl implements INetwork {
 
     @Override
     public void sendToPlayers(IPacket packet, ServerPlayer player) {
-        if (!this.hasType(packet))
+        if (this.notExist(packet))
             return;
 
         MinecraftServer server = player.getServer();
@@ -99,27 +96,24 @@ public class FabricNetworkImpl implements INetwork {
         return this.packets.get(packet.getClass());
     }
 
-    private boolean hasType(IPacket packet) {
-        return this.packets.containsKey(packet.getClass());
+    private boolean notExist(IPacket packet) {
+        return !this.packets.containsKey(packet.getClass());
     }
 
+    @SuppressWarnings("all")
     @Override
     public <T extends IPacket> void register(NetworkPackets.PacketType<T> packet) {
         if (packet.direction != NetworkDirection.PLAY_TO_CLIENT) {
             ServerPlayNetworking.registerGlobalReceiver(
                     this.packets.get(packet.type),
-                    (fabricPacket, player, responseSender) -> {
-                        fabricPacket.getPacket().handle(new NetworkContext(NetworkDirection.PLAY_TO_SERVER, player));
-                    }
+                    (fabricPacket, player, responseSender) -> fabricPacket.getPacket().handle(new NetworkContext(NetworkDirection.PLAY_TO_SERVER, player))
             );
         }
 
         if (packet.direction != NetworkDirection.PLAY_TO_SERVER) {
             ClientPlayNetworking.registerGlobalReceiver(
                     this.packets.get(packet.type),
-                    (fabricPacket, player, responseSender) -> {
-                        fabricPacket.getPacket().handle(new NetworkContext(NetworkDirection.PLAY_TO_CLIENT, null));
-                    }
+                    (fabricPacket, player, responseSender) -> fabricPacket.getPacket().handle(new NetworkContext(NetworkDirection.PLAY_TO_CLIENT, null))
             );
         }
     }

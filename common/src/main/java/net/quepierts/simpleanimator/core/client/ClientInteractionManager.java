@@ -4,7 +4,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.quepierts.simpleanimator.core.PlayerUtils;
@@ -46,17 +45,5 @@ public class ClientInteractionManager extends InteractionManager {
         }
 
         return super.accept(requester, player);
-    }
-
-    public boolean requesting() {
-        return this.exist(Minecraft.getInstance().player.getUUID());
-    }
-
-    public void cancel() {
-        this.cancel(Minecraft.getInstance().player.getUUID());
-    }
-
-    protected RequestHolder getLocalRequest() {
-        return get(Minecraft.getInstance().player.getUUID());
     }
 }
