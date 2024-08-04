@@ -3,6 +3,7 @@ package net.quepierts.simpleanimator.core.network.packet;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -16,13 +17,13 @@ public class AnimatorStopPacket extends UserPacket {
     }
 
     @Override
-    public void update(ServerPlayer sender) {
-        SimpleAnimator.getProxy().getAnimatorManager().get(this.owner).stop();
+    public void update(@NotNull ServerPlayer sender) {
+        SimpleAnimator.getProxy().getAnimatorManager().createIfAbsent(this.owner).stop();
         SimpleAnimator.getNetwork().sendToPlayers(this, sender);
     }
 
     @Override
     public void sync() {
-        SimpleAnimator.getProxy().getAnimatorManager().get(this.owner).stop();
+        SimpleAnimator.getProxy().getAnimatorManager().createIfAbsent(this.owner).stop();
     }
 }

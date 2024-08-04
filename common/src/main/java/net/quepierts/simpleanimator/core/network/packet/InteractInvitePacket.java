@@ -6,8 +6,9 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.quepierts.simpleanimator.api.IInteractHandler;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
-import net.quepierts.simpleanimator.core.proxy.CommonProxy;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -35,20 +36,20 @@ public class InteractInvitePacket extends UserPacket {
     }
 
     @Override
-    public void update(ServerPlayer sender) {
-        CommonProxy proxy = SimpleAnimator.getProxy();
-
-        ServerPlayer target = (ServerPlayer) sender.serverLevel().getPlayerByUUID(this.target);
+    public void update(@NotNull ServerPlayer sender) {
+        Player target = sender.level().getPlayerByUUID(this.target);
         if (target == null)
             return;
 
-        if (proxy.getInteractionManager().invite(sender, target, this.interaction)) {
-            SimpleAnimator.getNetwork().sendToPlayers(this, sender);
+        IInteractHandler handler = (IInteractHandler) sender;
+        if (handler.simpleanimator$invite(target, this.interaction, false)) {
+            SimpleAnimator.getNetwork().sendToAllPlayers(this, sender);
         }
     }
 
     @Override
     public void sync() {
+        SimpleAnimator.LOGGER.info("Invite Sync");
         ClientLevel level = Minecraft.getInstance().level;
         Player requester = level.getPlayerByUUID(this.owner);
         Player target = level.getPlayerByUUID(this.target);
@@ -56,7 +57,7 @@ public class InteractInvitePacket extends UserPacket {
         if (requester == null || target == null)
             return;
 
-        SimpleAnimator.getClient().getClientInteractionHandler().invite(requester, target, this.interaction);
+        ((IInteractHandler) requester).simpleanimator$invite(target, this.interaction, false);
     }
 
     public UUID getTarget() {

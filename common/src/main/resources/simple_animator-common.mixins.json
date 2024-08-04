@@ -12,8 +12,11 @@
     "EntityMixin",
     "ItemInHandRendererMixin",
     "LivingEntityRendererMixin",
-    "PlayerModelMixin",
-    "PlayerRendererMixin"
+    "LocalPlayerMixin",
+    "PlayerRendererMixin",
+    "model.CubeDefinitionAccessor",
+    "model.CubeListBuilderMixin",
+    "model.PlayerModelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -16,5 +16,6 @@ public class SimpleAnimatorForge {
                 ForgeClientProxy::setup,
                 new ForgeNetworkImpl()
         );
+
     }
 }

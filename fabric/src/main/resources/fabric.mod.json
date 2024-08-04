@@ -5,11 +5,11 @@
 
   "name": "SimpleAnimator",
   "description": "",
-  "authors": [],
+  "authors": ["Louis_Quepierts"],
   "contact": {},
 
   "license": "MIT",
-  "icon": "icon.png",
+  "icon": "simple_animator.png",
 
   "environment": "*",
   "entrypoints": {
@@ -22,7 +22,7 @@
     "simple_animator-common.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.14.2",
+    "fabricloader": ">=0.14.21",
     "minecraft": ">=1.20"
   }
 }

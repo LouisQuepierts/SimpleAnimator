@@ -5,8 +5,10 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.quepierts.simpleanimator.api.IInteractHandler;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.proxy.CommonProxy;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -30,25 +32,23 @@ public class InteractAcceptPacket extends UserPacket {
     }
 
     @Override
-    public void update(ServerPlayer sender) {
-        CommonProxy proxy = SimpleAnimator.getProxy();
-
-        ServerPlayer target = (ServerPlayer) sender.serverLevel().getPlayerByUUID(this.target);
+    public void update(@NotNull ServerPlayer sender) {
+        Player target = sender.level().getPlayerByUUID(this.target);
         if (target == null)
             return;
 
-        if (proxy.getInteractionManager().accept(sender, target)) {
+        if (((IInteractHandler) target).simpleanimator$accept(sender, false)) {
             SimpleAnimator.getNetwork().sendToPlayers(this, sender);
         }
     }
 
+    @SuppressWarnings("all")
     @Override
     protected void sync() {
         ClientLevel level = Minecraft.getInstance().level;
         Player requester = level.getPlayerByUUID(this.owner);
         Player target = level.getPlayerByUUID(this.target);
 
-        SimpleAnimator.LOGGER.info("Accept");
-        SimpleAnimator.getProxy().getInteractionManager().accept(requester, target);
+        ((IInteractHandler) target).simpleanimator$accept(requester, false);
     }
 }

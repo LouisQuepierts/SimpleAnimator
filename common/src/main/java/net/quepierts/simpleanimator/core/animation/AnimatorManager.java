@@ -2,6 +2,7 @@ package net.quepierts.simpleanimator.core.animation;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.server.level.ServerPlayer;
+import net.quepierts.simpleanimator.api.animation.Animator;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.network.packet.AnimatorDataPacket;
 import net.quepierts.simpleanimator.core.network.packet.batch.ClientUpdateAnimatorPacket;
@@ -23,12 +24,18 @@ public class AnimatorManager<T extends Animator> {
         return animators.get(uuid);
     }
 
-    public T get(UUID uuid) {
+    public T createIfAbsent(UUID uuid) {
         return animators.computeIfAbsent(uuid, (uid) -> (T) new Animator(uid));
     }
 
     public void clear() {
         animators.clear();
+    }
+
+    public void reset() {
+        for (T value : animators.values()) {
+            value.reset(false);
+        }
     }
 
     public  boolean exist(UUID player) {

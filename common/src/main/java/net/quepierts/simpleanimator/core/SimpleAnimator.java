@@ -14,9 +14,9 @@ public abstract class SimpleAnimator {
 	private static INetwork network;
 
 	public static void init(boolean isClient, Runnable common, Runnable client, INetwork inetwork) {
+		network = inetwork;
 		proxy = isClient ? new ClientProxy(common, client) : new CommonProxy(common);
 		proxy.setup();
-		network = inetwork;
 	}
 
 	public static CommonProxy getProxy() {

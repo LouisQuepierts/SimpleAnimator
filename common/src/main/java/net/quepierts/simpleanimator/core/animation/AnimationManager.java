@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,6 +15,8 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.quepierts.simpleanimator.api.animation.Animation;
+import net.quepierts.simpleanimator.api.animation.Interaction;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.network.packet.batch.ClientUpdateAnimationPacket;
 import net.quepierts.simpleanimator.core.network.packet.batch.ClientUpdateInteractionPacket;
@@ -80,7 +83,7 @@ public class AnimationManager implements PreparableReloadListener {
         list.stream()
                 .flatMap((Function<Pair<ResourceLocation, Animation[]>, Stream<Pair<ResourceLocation, Animation>>>) pair -> {
                     if (pair.getSecond().length > 1) {
-                        LOGGER.info("Load Interaction: {}", pair.getFirst());
+                        LOGGER.debug("Load Interaction: {}", pair.getFirst());
                         interactions.put(pair.getFirst(), new Interaction(
                                 pair.getFirst().withPrefix(Animation.Type.INVITE.path),
                                 pair.getFirst().withPrefix(Animation.Type.REQUESTER.path),
@@ -107,10 +110,10 @@ public class AnimationManager implements PreparableReloadListener {
                     list.add(CompletableFuture.supplyAsync(() -> {
                         try (Reader reader = resource.openAsReader()) {
                             Animation[] animations = Animation.fromStream(reader);
-                            LOGGER.info("Loaded animation {} from {} in data pack {}",  resourceLocation, location, resource.sourcePackId());
+                            LOGGER.warn("Loaded animation {} from {} in data pack {}",  resourceLocation, location, resource.sourcePackId());
                             return Pair.of(resourceLocation, animations);
                         } catch (IOException e) {
-                            LOGGER.info("Couldn't read animation {} from {} in data pack {}", resourceLocation, location, resource.sourcePackId());
+                            LOGGER.warn("Couldn't read animation {} from {} in data pack {}", resourceLocation, location, resource.sourcePackId());
                             return null;
                         }
                     }));
@@ -200,6 +203,7 @@ public class AnimationManager implements PreparableReloadListener {
     }
 
     public void handleUpdateAnimations(ClientUpdateAnimationPacket packet) {
+        SimpleAnimator.getProxy().getAnimatorManager().reset();
         LOGGER.info("Sync Animations From Server");
         Map<ResourceLocation, Animation> animations = packet.getAnimations();
         this.animations = ImmutableMap.copyOf(animations);
@@ -233,6 +237,9 @@ public class AnimationManager implements PreparableReloadListener {
     }
 
     public void sync(ServerPlayer player) {
+        if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.getUUID().equals(player.getUUID()))
+            return;
+
         LOGGER.info("Send Animations to Client");
         SimpleAnimator.getNetwork().sendToPlayer(new ClientUpdateAnimationPacket(this.animations), player);
         SimpleAnimator.getNetwork().sendToPlayer(new ClientUpdateInteractionPacket(this.interactions), player);
@@ -241,9 +248,20 @@ public class AnimationManager implements PreparableReloadListener {
     public void sync(PlayerList list) {
         ClientUpdateAnimationPacket animationPacket = new ClientUpdateAnimationPacket(this.animations);
         ClientUpdateInteractionPacket interactionPacket = new ClientUpdateInteractionPacket(this.interactions);
-        for (ServerPlayer player : list.getPlayers()) {
-            SimpleAnimator.getNetwork().sendToPlayer(animationPacket, player);
-            SimpleAnimator.getNetwork().sendToPlayer(interactionPacket, player);
+        if (Minecraft.getInstance().player != null) {
+            UUID uuid = Minecraft.getInstance().player.getUUID();
+            for (ServerPlayer player : list.getPlayers()) {
+                if (player.getUUID().equals(uuid))
+                    continue;
+                SimpleAnimator.getNetwork().sendToPlayer(animationPacket, player);
+                SimpleAnimator.getNetwork().sendToPlayer(interactionPacket, player);
+            }
+
+        } else {
+            for (ServerPlayer player : list.getPlayers()) {
+                SimpleAnimator.getNetwork().sendToPlayer(animationPacket, player);
+                SimpleAnimator.getNetwork().sendToPlayer(interactionPacket, player);
+            }
         }
     }
 

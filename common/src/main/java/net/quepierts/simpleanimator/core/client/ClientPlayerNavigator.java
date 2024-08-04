@@ -18,51 +18,65 @@ public class ClientPlayerNavigator {
     private Vec3 targetPosition = null;
     private Vec3 lastTargetPosition = Vec3.ZERO;
 
+    private Phrase phrase = Phrase.IDLE;
     private long timer = 0;
     private boolean navigating = false;
     private Runnable post;
 
-
     public void tick() {
-        if (!lastTargetPosition.equals(target.position())) {
-            lastTargetPosition = target.position();
-            targetPosition = PlayerUtils.getRelativePosition(target, forward, left);
+        switch (phrase) {
+            case RUNNING:
+                if (!lastTargetPosition.equals(target.position())) {
+                    lastTargetPosition = target.position();
+                    targetPosition = PlayerUtils.getRelativePosition(target, forward, left);
+                }
+
+                LocalPlayer player = Minecraft.getInstance().player;
+                if (timer ++ > 1000) {
+                    this.stop();
+                    return;
+                }
+
+                if (PlayerUtils.distanceSqr2D(player.position(), targetPosition) < 0.001) {
+                    player.moveTo(targetPosition);
+                    this.phrase = Phrase.FINISH;
+                    this.timer = 0;
+                    return;
+                }
+
+                Vec3 subtract = targetPosition.subtract(player.position()).multiply(1, 0, 1);
+                Vec3 direction = subtract.normalize().scale(player.getSpeed());
+                player.addDeltaMovement(subtract.lengthSqr() < direction.lengthSqr() ? subtract : direction);
+
+                player.lookAt(EntityAnchorArgument.Anchor.EYES, lastTargetPosition.add(0, target.getEyeHeight(), 0));
+                break;
+            case FINISH:
+                if (timer ++ > 20) {
+                    timer = 0;
+
+                    if (this.post != null)
+                        post.run();
+
+                    this.stop();
+                }
+                break;
         }
 
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (timer ++ > 1000) {
-            this.stop();
-            return;
-        }
-
-        if (PlayerUtils.distanceSqr2D(player.position(), targetPosition) < 0.001) {
-            finish(player);
-            return;
-        }
-
-        Vec3 subtract = targetPosition.subtract(player.position()).multiply(1, 0, 1);
-        Vec3 direction = subtract.normalize().scale(player.getSpeed());
-        player.addDeltaMovement(subtract.lengthSqr() < direction.lengthSqr() ? subtract : direction);
-
-        player.lookAt(EntityAnchorArgument.Anchor.EYES, lastTargetPosition.add(0, target.getEyeHeight(), 0));
     }
 
     public void navigateTo(Player player, float forward, float left, Runnable post) {
+        LocalPlayer local = Minecraft.getInstance().player;
+
+        if (PlayerUtils.isRiding(local) && !player.onGround() && !PlayerUtils.inSameDimension(local, player))
+            return;
+
+        this.phrase = Phrase.RUNNING;
         this.target = player;
         this.forward = forward;
         this.left = left;
         this.post = post;
         this.navigating = true;
         this.timer = 0;
-    }
-
-    private void finish(LocalPlayer player) {
-        player.setDeltaMovement(Vec3.ZERO); // 停止移动
-
-        if (post != null)
-            post.run();
-
-        this.stop();
     }
 
     public boolean isNavigating() {
@@ -76,5 +90,12 @@ public class ClientPlayerNavigator {
         this.lastTargetPosition = Vec3.ZERO;
         this.post = null;
         this.timer = 0;
+        this.phrase = Phrase.IDLE;
+    }
+
+    private enum Phrase {
+        IDLE,
+        RUNNING,
+        FINISH
     }
 }

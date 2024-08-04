@@ -3,25 +3,19 @@ package net.quepierts.simpleanimator.forge.proxy;
 import net.minecraft.Util;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.MovementInputUpdateEvent;
 import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.config.ModConfig;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.animation.ModelBone;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
-import net.quepierts.simpleanimator.core.command.AnimateCommand;
-import net.quepierts.simpleanimator.core.command.InteractCommand;
-import net.quepierts.simpleanimator.core.network.packet.AnimatorStopPacket;
-import net.quepierts.simpleanimator.core.network.packet.InteractCancelPacket;
 import net.quepierts.simpleanimator.core.proxy.ClientProxy;
-
-import java.util.UUID;
+import net.quepierts.simpleanimator.forge.config.ForgeCommonConfiguration;
 
 public class ForgeClientProxy {
     public static void setup() {
@@ -35,46 +29,41 @@ public class ForgeClientProxy {
     }
 
     private boolean canClear = false;
+
     @SubscribeEvent
-    public void onCommandRegister(RegisterCommandsEvent event) {
-        AnimateCommand.register(event.getDispatcher());
-        InteractCommand.register(event.getDispatcher());
-    }
-
-
-    /*@SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent event) {
+        if (event.phase == TickEvent.Phase.END)
+            return;
+
         Minecraft minecraft = Minecraft.getInstance();
         long t = Util.getMillis();
+
         if (!minecraft.isPaused() && minecraft.level != null) {
             canClear = true;
             this.proxy.getAnimatorManager().tick((t - time) / 1000f);
         }
 
         time = t;
-    }*/
+    }
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
         Minecraft minecraft = Minecraft.getInstance();
-        long t = Util.getMillis();
+
+        if (event.phase == TickEvent.Phase.END)
+            return;
 
         if (minecraft.level != null) {
-            if (!minecraft.isPaused()) {
-                canClear = true;
-                this.proxy.getAnimatorManager().tick((t - time) / 1000f);
-            }
-            if (this.proxy.getNavigator().isNavigating() && event.phase == TickEvent.Phase.END) {
+            if (this.proxy.getNavigator().isNavigating()) {
                 this.proxy.getNavigator().tick();
             }
         } else if (canClear) {
             this.proxy.getAnimatorManager().clear();
             canClear = false;
         }
-        time = t;
     }
 
-    @SubscribeEvent
+    /*@SubscribeEvent
     public void onMovementInputUpdate(MovementInputUpdateEvent event) {
         LocalPlayer player = Minecraft.getInstance().player;
         Input input = event.getInput();
@@ -106,7 +95,7 @@ public class ForgeClientProxy {
                 input.shiftKeyDown = false;
             }
         }
-    }
+    }*/
 
     @SubscribeEvent
     public void onInteractionKeyMappingTriggered(InputEvent.InteractionKeyMappingTriggered event) {

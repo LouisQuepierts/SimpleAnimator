@@ -3,6 +3,7 @@ package net.quepierts.simpleanimator.core.network.packet;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -17,7 +18,7 @@ public class InteractCancelPacket extends UserPacket {
     }
 
     @Override
-    protected void update(ServerPlayer sender) {
+    protected void update(@NotNull ServerPlayer sender) {
         SimpleAnimator.getProxy().getInteractionManager().cancel(this.owner);
         SimpleAnimator.getNetwork().sendToPlayers(this, sender);
     }

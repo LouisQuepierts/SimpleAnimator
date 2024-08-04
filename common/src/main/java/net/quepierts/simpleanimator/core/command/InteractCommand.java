@@ -1,5 +1,6 @@
 package net.quepierts.simpleanimator.core.command;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -12,21 +13,25 @@ import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.quepierts.simpleanimator.api.IInteractHandler;
 import net.quepierts.simpleanimator.core.PlayerUtils;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
-import net.quepierts.simpleanimator.core.animation.InteractionManager;
+import net.quepierts.simpleanimator.core.animation.RequestHolder;
 import net.quepierts.simpleanimator.core.network.packet.InteractAcceptPacket;
 import net.quepierts.simpleanimator.core.network.packet.InteractInvitePacket;
 
+import java.util.stream.Stream;
+
 public class InteractCommand {
-    private static final SuggestionProvider<CommandSourceStack> SUGGEST_INTERACTION = (context, builder) -> {
-        return SharedSuggestionProvider.suggestResource(SimpleAnimator.getProxy().getAnimationManager().getInteractionNames(), builder);
-    };;
+    private static final SuggestionProvider<CommandSourceStack> SUGGEST_INTERACTION = (context, builder) -> SharedSuggestionProvider.suggestResource(SimpleAnimator.getProxy().getAnimationManager().getInteractionNames(), builder);;
+
+    private static final SuggestionProvider<CommandSourceStack> SUGGEST_PLAYER = ((context, builder) -> SharedSuggestionProvider.suggest(getPlayerNames(context.getSource()), builder));
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("interact")
-                .then(Commands.literal("accept").then(Commands.argument("requester", EntityArgument.player()).executes(InteractCommand::accept)))
-                .then(Commands.literal("invite").then(Commands.argument("target", EntityArgument.player()).then(Commands.argument("interaction", ResourceLocationArgument.id()).suggests(SUGGEST_INTERACTION).executes(InteractCommand::invite)))));
+                .then(Commands.literal("accept").then(Commands.argument("requester", EntityArgument.player()).suggests(SUGGEST_PLAYER).executes(InteractCommand::accept)))
+                .then(Commands.literal("invite").then(Commands.argument("target", EntityArgument.player()).suggests(SUGGEST_PLAYER).then(Commands.argument("interaction", ResourceLocationArgument.id()).suggests(SUGGEST_INTERACTION).executes(InteractCommand::invite)))));
     }
 
     private static int invite(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -68,14 +73,22 @@ public class InteractCommand {
             return 0;
         }
 
-        InteractionManager.Request request = SimpleAnimator.getProxy().getInteractionManager().get(requester.getUUID());
+        RequestHolder request = ((IInteractHandler) requester).simpleanimator$getRequest();
 
-        if (request == null || !request.target().equals(player.getUUID())) {
+        if (!request.hasRequest() || !request.getTarget().equals(player.getUUID())) {
             source.sendFailure(Component.translatable("animator.commands.failed.nonexistent_request"));
             return 0;
         }
 
         SimpleAnimator.getNetwork().sendToAllPlayers(new InteractAcceptPacket(requester.getUUID(), player.getUUID()), player);
         return 1;
+    }
+
+    private static Stream<String> getPlayerNames(CommandSourceStack sources) {
+        ServerPlayer serverPlayer = sources.getPlayer();
+        return sources.getServer().getPlayerList().getPlayers().stream()
+                .filter(player -> serverPlayer != player)
+                .map(Player::getGameProfile)
+                .map(GameProfile::getName);
     }
 }

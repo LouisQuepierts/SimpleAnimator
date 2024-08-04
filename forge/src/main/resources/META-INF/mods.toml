@@ -6,7 +6,7 @@ license="MIT"
 modId="simple_animator"
 version="${version}"
 displayName="SimpleAnimator"
-logoFile="icon.png"
+logoFile="simple_aniamtor.png"
 authors="Louis_Quepierts"
 description='''
 

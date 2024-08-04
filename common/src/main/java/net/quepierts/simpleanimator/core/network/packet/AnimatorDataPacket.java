@@ -5,7 +5,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.animation.AnimationState;
-import net.quepierts.simpleanimator.core.animation.Animator;
+import net.quepierts.simpleanimator.api.animation.Animator;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ public class AnimatorDataPacket extends UserPacket {
     public final AnimationState nextState;
     public final Animator.ProcessState procState;
     public final float timer;
+    public final float speed;
 
     public final boolean publish;
 
@@ -25,16 +27,18 @@ public class AnimatorDataPacket extends UserPacket {
         this.nextState = byteBuf.readEnum(AnimationState.class);
         this.procState = byteBuf.readEnum(Animator.ProcessState.class);
         this.timer = byteBuf.readFloat();
+        this.speed = byteBuf.readFloat();
         this.publish = byteBuf.readBoolean();
     }
 
-    public AnimatorDataPacket(UUID uuid, ResourceLocation animation, AnimationState curState, AnimationState nextState, Animator.ProcessState proState, float timer, boolean publish) {
+    public AnimatorDataPacket(UUID uuid, ResourceLocation animation, AnimationState curState, AnimationState nextState, Animator.ProcessState proState, float timer, float speed, boolean publish) {
         super(uuid);
         this.animationLocation = animation;
         this.curState = curState;
         this.nextState = nextState;
         this.procState = proState;
         this.timer = timer;
+        this.speed = speed;
         this.publish = publish;
     }
 
@@ -49,6 +53,7 @@ public class AnimatorDataPacket extends UserPacket {
         this.nextState = animator.getNextState();
         this.procState = animator.getProcState();
         this.timer = animator.getTimer();
+        this.speed = animator.getSpeed();
         this.publish = publish;
     }
 
@@ -60,31 +65,19 @@ public class AnimatorDataPacket extends UserPacket {
         buffer.writeEnum(this.nextState);
         buffer.writeEnum(this.procState);
         buffer.writeFloat(this.timer);
+        buffer.writeFloat(this.speed);
         buffer.writeBoolean(this.publish);
     }
 
     @Override
-    public void update(ServerPlayer sender) {
-        SimpleAnimator.getProxy().getAnimatorManager().get(this.owner).sync(this);
+    public void update(@NotNull ServerPlayer sender) {
+        SimpleAnimator.getProxy().getAnimatorManager().createIfAbsent(this.owner).sync(this);
         if (publish)
             SimpleAnimator.getNetwork().sendToPlayers(this, sender);
     }
 
     @Override
     public void sync() {
-        SimpleAnimator.getProxy().getAnimatorManager().get(owner).sync(this);
-    }
-
-    @Override
-    public String toString() {
-        return "AnimatorPacket{" +
-                "uuid=" + owner +
-                ", animationLocation=" + animationLocation +
-                ", curState=" + curState +
-                ", nextState=" + nextState +
-                ", procState=" + procState +
-                ", timer=" + timer +
-                ", publish=" + publish +
-                '}';
+        SimpleAnimator.getProxy().getAnimatorManager().createIfAbsent(owner).sync(this);
     }
 }

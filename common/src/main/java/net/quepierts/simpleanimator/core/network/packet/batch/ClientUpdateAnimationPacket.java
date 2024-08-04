@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
-import net.quepierts.simpleanimator.core.animation.Animation;
+import net.quepierts.simpleanimator.api.animation.Animation;
 import net.quepierts.simpleanimator.core.network.ISync;
 
 import java.util.Map;

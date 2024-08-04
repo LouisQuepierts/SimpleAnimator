@@ -1,7 +1,8 @@
-package net.quepierts.simpleanimator.core.animation;
+package net.quepierts.simpleanimator.api.animation;
 
 import net.minecraft.resources.ResourceLocation;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
+import net.quepierts.simpleanimator.core.animation.AnimationState;
 import net.quepierts.simpleanimator.core.network.packet.AnimatorDataPacket;
 
 import java.util.UUID;
@@ -17,6 +18,7 @@ public class Animator {
     protected AnimationState nextState;
     protected ProcessState procState;
     protected float timer;
+    protected float speed = 1.0f;
 
     public Animator(UUID uuid) {
         this.uuid = uuid;
@@ -28,13 +30,14 @@ public class Animator {
     }
 
     public void sync(AnimatorDataPacket packet) {
-        SimpleAnimator.LOGGER.info("Update: {} {} ,", this.getClass().getSimpleName(), packet);
+        SimpleAnimator.LOGGER.debug("Update: {} {} ,", this.getClass().getSimpleName(), packet);
         this.animationLocation = packet.animationLocation;
         this.animation = SimpleAnimator.getProxy().getAnimationManager().getAnimation(packet.animationLocation);
         this.curState = packet.curState;
         this.nextState = packet.nextState;
         this.procState = packet.procState;
         this.timer = packet.timer;
+        this.speed = packet.speed;
     }
 
     public boolean play(ResourceLocation location) {
@@ -87,7 +90,7 @@ public class Animator {
         return timer;
     }
 
-    public void reset() {
+    public void reset(boolean update) {
         this.timer = 0;
         this.animation = null;
         this.animationLocation = EMPTY;
@@ -95,6 +98,10 @@ public class Animator {
 
     public boolean isRunning() {
         return !animationLocation.equals(EMPTY) && this.animation != null;
+    }
+
+    public float getSpeed() {
+        return speed;
     }
 
     public enum ProcessState {

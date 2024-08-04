@@ -1,7 +1,7 @@
 package net.quepierts.simpleanimator.core.proxy;
 
 import net.quepierts.simpleanimator.core.animation.AnimationManager;
-import net.quepierts.simpleanimator.core.animation.Animator;
+import net.quepierts.simpleanimator.api.animation.Animator;
 import net.quepierts.simpleanimator.core.animation.AnimatorManager;
 import net.quepierts.simpleanimator.core.animation.InteractionManager;
 
@@ -13,13 +13,13 @@ public class CommonProxy {
     private final Runnable setup;
     
     public CommonProxy(Runnable setup) {
-        this(new AnimatorManager<>(), new InteractionManager(), setup);
+        this(new AnimatorManager<>(), setup);
     }
     
-    protected CommonProxy(AnimatorManager<? extends Animator> animatorManager, InteractionManager interactionManager, Runnable setup) {
+    protected CommonProxy(AnimatorManager<? extends Animator> animatorManager, Runnable setup) {
         this.animationManager = new AnimationManager();
         this.animatorManager = animatorManager;
-        this.interactionManager = interactionManager;
+        this.interactionManager = new InteractionManager();
         this.setup = setup;
     }
 

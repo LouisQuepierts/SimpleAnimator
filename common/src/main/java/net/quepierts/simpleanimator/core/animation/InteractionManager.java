@@ -4,6 +4,8 @@ import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import net.quepierts.simpleanimator.api.animation.Animator;
+import net.quepierts.simpleanimator.api.animation.Interaction;
 import net.quepierts.simpleanimator.core.PlayerUtils;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.proxy.CommonProxy;
@@ -14,37 +16,40 @@ import java.util.Map;
 import java.util.UUID;
 
 public class InteractionManager {
-    protected final Map<UUID, Request> requests;
+    protected final Map<UUID, RequestHolder> requests;
 
     public InteractionManager() {
         requests = new HashMap<>();
     }
 
+    @Deprecated
     public boolean invite(Player requester, Player receiver, ResourceLocation location) {
         if (requester == receiver)
             return false;
 
         CommonProxy proxy = SimpleAnimator.getProxy();
-        Animator animator = proxy.getAnimatorManager().get(requester.getUUID());
+        Animator animator = proxy.getAnimatorManager().createIfAbsent(requester.getUUID());
 
         if (animator.getAnimation() != null && !animator.getAnimation().isAbortable())
             return false;
 
         Interaction interaction = proxy.getAnimationManager().getInteraction(location);
-        System.out.println(interaction);
 
         if (interaction == null)
             return false;
 
-        this.requests.put(requester.getUUID(), new Request(receiver.getUUID(), location));
+        SimpleAnimator.LOGGER.info(interaction.toString());
+
+        this.createIfAbsent(receiver.getUUID()).set(receiver.getUUID(), location);
         animator.play(interaction.invite());
         return true;
     }
 
+    @Deprecated
     public boolean accept(Player requester, Player receiver) {
-        Request request = this.requests.get(requester.getUUID());
+        RequestHolder request = this.requests.get(requester.getUUID());
 
-        if (request == null || !request.target.equals(receiver.getUUID()))
+        if (request == null || !request.getTarget().equals(receiver.getUUID()))
             return false;
 
         Vec3 position = PlayerUtils.getRelativePosition(requester, 1, 0);
@@ -52,27 +57,29 @@ public class InteractionManager {
             return false;
 
         CommonProxy proxy = SimpleAnimator.getProxy();
-        Interaction interaction = proxy.getAnimationManager().getInteraction(request.interaction);
+        Interaction interaction = proxy.getAnimationManager().getInteraction(request.getInteraction());
 
         if (interaction == null)
             return false;
 
-        proxy.getAnimatorManager().get(requester.getUUID()).play(interaction.requester());
-        proxy.getAnimatorManager().get(receiver.getUUID()).play(interaction.receiver());
+        proxy.getAnimatorManager().createIfAbsent(requester.getUUID()).play(interaction.requester());
+        proxy.getAnimatorManager().createIfAbsent(receiver.getUUID()).play(interaction.receiver());
 
         receiver.moveTo(position);
         receiver.lookAt(EntityAnchorArgument.Anchor.EYES, requester.getEyePosition());
 
-        this.requests.remove(requester.getUUID());
+        request.cancel();
         return true;
     }
 
-    public void clear() {
-        this.requests.clear();
+    public void reset() {
+        for (RequestHolder holder : this.requests.values()) {
+            holder.cancel();
+        }
     }
 
     @Nullable
-    public Request get(UUID requester) {
+    public RequestHolder get(UUID requester) {
         return this.requests.get(requester);
     }
 
@@ -81,12 +88,16 @@ public class InteractionManager {
     }
 
     public void cancel(UUID requester) {
-        Request request = get(requester);
+        RequestHolder request = get(requester);
 
         if (request != null) {
-            this.requests.remove(requester);
-            SimpleAnimator.getProxy().getAnimatorManager().get(requester).stop();
+            request.cancel();
+            SimpleAnimator.getProxy().getAnimatorManager().createIfAbsent(requester).stop();
         }
+    }
+
+    public RequestHolder createIfAbsent(UUID uuid) {
+        return this.requests.computeIfAbsent(uuid, RequestHolder::new);
     }
 
     public record Request(

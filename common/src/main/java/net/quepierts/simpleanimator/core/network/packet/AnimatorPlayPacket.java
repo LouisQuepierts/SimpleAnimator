@@ -4,6 +4,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -26,14 +27,13 @@ public class AnimatorPlayPacket extends UserPacket {
     }
 
     @Override
-    public void update(ServerPlayer sender) {
-        SimpleAnimator.getProxy().getAnimatorManager().get(this.owner).play(animation);
+    public void update(@NotNull ServerPlayer sender) {
+        SimpleAnimator.getProxy().getAnimatorManager().createIfAbsent(this.owner).play(animation);
         SimpleAnimator.getNetwork().sendToPlayers(this, sender);
     }
 
     @Override
     public void sync() {
-        SimpleAnimator.LOGGER.info("Handle Sync Play");
-        SimpleAnimator.getProxy().getAnimatorManager().get(owner).play(animation);
+        SimpleAnimator.getProxy().getAnimatorManager().createIfAbsent(owner).play(animation);
     }
 }

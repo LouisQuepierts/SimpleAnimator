@@ -1,4 +1,4 @@
-package net.quepierts.simpleanimator.core.animation;
+package net.quepierts.simpleanimator.api.animation;
 
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
@@ -9,6 +9,9 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringUtil;
+import net.quepierts.simpleanimator.core.animation.AnimationState;
+import net.quepierts.simpleanimator.core.animation.LerpMode;
+import net.quepierts.simpleanimator.core.animation.ModelBone;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 import net.quepierts.simpleanimator.core.client.state.IAnimationState;
 import org.joml.Vector3f;

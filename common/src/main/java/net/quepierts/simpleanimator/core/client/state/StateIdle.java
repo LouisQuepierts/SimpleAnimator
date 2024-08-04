@@ -7,7 +7,7 @@ import org.joml.Vector3f;
 public class StateIdle implements IAnimationState {
     @Override
     public void enter(ClientAnimator animator) {
-        animator.reset();
+        animator.reset(true);
     }
 
     @Override

@@ -9,7 +9,7 @@ public class ClientProxy extends CommonProxy {
     private final Runnable setup;
 
     public ClientProxy(Runnable common, Runnable client) {
-        super(new ClientAnimatorManager(), new ClientInteractionManager(), common);
+        super(new ClientAnimatorManager(), common);
         this.navigator = new ClientPlayerNavigator();
         this.setup = client;
     }
@@ -20,10 +20,6 @@ public class ClientProxy extends CommonProxy {
 
     public ClientAnimatorManager getClientAnimatorManager() {
         return (ClientAnimatorManager) getAnimatorManager();
-    }
-
-    public ClientInteractionManager getClientInteractionHandler() {
-        return (ClientInteractionManager) getInteractionManager();
     }
 
     @Override

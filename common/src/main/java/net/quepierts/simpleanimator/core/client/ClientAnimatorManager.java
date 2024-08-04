@@ -11,14 +11,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.UUID;
 
+@Environment(EnvType.CLIENT)
 public class ClientAnimatorManager extends AnimatorManager<ClientAnimator> {
-    @Environment(EnvType.CLIENT)
     @NotNull
     public ClientAnimator getLocalAnimator() {
-        return get(Minecraft.getInstance().player.getUUID());
+        return createIfAbsent(Minecraft.getInstance().player.getUUID());
     }
 
-    public ClientAnimator get(UUID player) {
+    public ClientAnimator createIfAbsent(UUID player) {
         return animators.computeIfAbsent(player, ClientAnimator::new);
     }
 
@@ -29,11 +29,11 @@ public class ClientAnimatorManager extends AnimatorManager<ClientAnimator> {
     }
 
     public void handleUpdateAnimator(ClientUpdateAnimatorPacket packet) {
-        this.clear();
+        this.reset();
 
         List<AnimatorDataPacket> list = packet.getAnimators();
         for (AnimatorDataPacket data : list) {
-            this.get(data.getOwner()).sync(data);
+            this.createIfAbsent(data.getOwner()).sync(data);
         }
 
         this.getLocalAnimator();

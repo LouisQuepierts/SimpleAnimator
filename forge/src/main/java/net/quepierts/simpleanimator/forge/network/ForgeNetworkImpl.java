@@ -1,11 +1,14 @@
 package net.quepierts.simpleanimator.forge.network;
 
+import net.minecraft.client.multiplayer.ClientChunkCache;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.network.INetwork;
@@ -33,13 +36,7 @@ public class ForgeNetworkImpl implements INetwork {
 
     @Override
     public void sendToAllPlayers(IPacket packet, ServerPlayer player) {
-        MinecraftServer server = player.getServer();
-        if (server == null)
-            return;
-
-        for (ServerPlayer serverPlayer : server.getPlayerList().getPlayers()) {
-            CHANNEL.sendTo(packet, serverPlayer.connection.connection, NetworkDirection.PLAY_TO_CLIENT);
-        }
+        CHANNEL.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player), packet);
     }
 
     @Override
@@ -57,15 +54,7 @@ public class ForgeNetworkImpl implements INetwork {
 
     @Override
     public void sendToPlayers(IPacket packet, ServerPlayer player) {
-        MinecraftServer server = player.getServer();
-        if (server == null)
-            return;
-        for (ServerPlayer serverPlayer : server.getPlayerList().getPlayers()) {
-            if (serverPlayer == player)
-                continue;
-
-            CHANNEL.sendTo(packet, serverPlayer.connection.connection, NetworkDirection.PLAY_TO_CLIENT);
-        }
+        CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(() -> player), packet);
     }
 
     @Override

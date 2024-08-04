@@ -1,4 +1,4 @@
-package net.quepierts.simpleanimator.core.animation;
+package net.quepierts.simpleanimator.api.animation;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;

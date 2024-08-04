@@ -1,5 +1,7 @@
 package net.quepierts.simpleanimator.core.client;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
@@ -8,19 +10,14 @@ import net.minecraft.world.phys.Vec3;
 import net.quepierts.simpleanimator.core.PlayerUtils;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.animation.InteractionManager;
+import net.quepierts.simpleanimator.core.animation.RequestHolder;
 import net.quepierts.simpleanimator.core.network.packet.InteractAcceptPacket;
 
 import java.util.UUID;
 
+@Environment(EnvType.CLIENT)
 public class ClientInteractionManager extends InteractionManager {
-    /*
-    * Receive Invite From Other Player
-    * */
-    @Override
-    public boolean invite(Player requester, Player receiver, ResourceLocation location) {
-        return super.invite(requester, receiver, location);
-    }
-
+    @Deprecated
     @Override
     public boolean accept(Player requester, Player receiver) {
         if (receiver == Minecraft.getInstance().player) {
@@ -29,12 +26,13 @@ public class ClientInteractionManager extends InteractionManager {
         return super.accept(requester, receiver);
     }
 
+    @Deprecated
     public boolean tryAccept(Player requester) {
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
         UUID uuid = requester.getUUID();
 
-        Request request = this.get(uuid);
+        RequestHolder request = this.get(uuid);
         if (request == null)
             return false;
 
@@ -54,7 +52,11 @@ public class ClientInteractionManager extends InteractionManager {
         return this.exist(Minecraft.getInstance().player.getUUID());
     }
 
-    protected Request getLocalRequest() {
+    public void cancel() {
+        this.cancel(Minecraft.getInstance().player.getUUID());
+    }
+
+    protected RequestHolder getLocalRequest() {
         return get(Minecraft.getInstance().player.getUUID());
     }
 }

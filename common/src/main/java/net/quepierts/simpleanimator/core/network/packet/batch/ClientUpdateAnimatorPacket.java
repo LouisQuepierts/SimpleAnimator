@@ -3,7 +3,7 @@ package net.quepierts.simpleanimator.core.network.packet.batch;
 import net.minecraft.network.FriendlyByteBuf;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.animation.AnimationState;
-import net.quepierts.simpleanimator.core.animation.Animator;
+import net.quepierts.simpleanimator.api.animation.Animator;
 import net.quepierts.simpleanimator.core.network.ISync;
 import net.quepierts.simpleanimator.core.network.packet.AnimatorDataPacket;
 
@@ -29,6 +29,7 @@ public class ClientUpdateAnimatorPacket implements ISync {
                     byteBuf.readEnum(AnimationState.class),
                     byteBuf.readEnum(Animator.ProcessState.class),
                     byteBuf.readFloat(),
+                    byteBuf.readFloat(),
                     false
             ));
         }
@@ -44,6 +45,7 @@ public class ClientUpdateAnimatorPacket implements ISync {
             byteBuf.writeEnum(packet.nextState);
             byteBuf.writeEnum(packet.procState);
             byteBuf.writeFloat(packet.timer);
+            byteBuf.writeFloat(packet.speed);
         }
     }
 

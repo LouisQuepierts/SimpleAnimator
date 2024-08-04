@@ -1,7 +1,5 @@
 package net.quepierts.simpleanimator.core.network;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.server.level.ServerPlayer;
 
 public interface INetwork {
@@ -15,7 +13,6 @@ public interface INetwork {
 
     void sendToPlayers(IPacket packet, ServerPlayer player);
 
-    @Environment(EnvType.CLIENT)
     void update(IPacket packet);
 
     <T extends IPacket> void register(NetworkPackets.PacketType<T> packet);

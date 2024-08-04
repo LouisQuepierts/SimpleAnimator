@@ -1,10 +1,12 @@
-package net.quepierts.simpleanimator.core.animation;
+package net.quepierts.simpleanimator.api.animation;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.network.FriendlyByteBuf;
 import net.quepierts.simpleanimator.core.PlayerUtils;
+import net.quepierts.simpleanimator.core.animation.AnimationState;
+import net.quepierts.simpleanimator.core.animation.ModelBone;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 
 import java.io.Reader;

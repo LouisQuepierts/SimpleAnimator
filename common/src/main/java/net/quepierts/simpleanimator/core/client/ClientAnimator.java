@@ -1,18 +1,19 @@
 package net.quepierts.simpleanimator.core.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.quepierts.simpleanimator.core.PlayerUtils;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.animation.AnimationState;
-import net.quepierts.simpleanimator.core.animation.Animator;
+import net.quepierts.simpleanimator.api.animation.Animator;
 import net.quepierts.simpleanimator.core.animation.ModelBone;
 import net.quepierts.simpleanimator.core.client.state.IAnimationState;
 import net.quepierts.simpleanimator.core.network.packet.AnimatorDataPacket;
@@ -24,9 +25,9 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.UUID;
 
+@Environment(EnvType.CLIENT)
 public class ClientAnimator extends Animator {
     private static final ModelPart ROOT = new ModelPart(Collections.EMPTY_LIST, Collections.EMPTY_MAP);
-    public Player player;
     //private Animation animation;
     private final EnumMap<ModelBone, Cache> cache;
     private boolean processed = false;
@@ -35,9 +36,6 @@ public class ClientAnimator extends Animator {
     public ClientAnimator(UUID uuid) {
         super(uuid);
 
-        if (Minecraft.getInstance().level != null) {
-            this.player = Minecraft.getInstance().level.getPlayerByUUID(uuid);
-        }
         this.cache = new EnumMap<>(ModelBone.class);
         for (ModelBone value : ModelBone.values()) {
             cache.put(value, new Cache(new Vector3f(), new Vector3f()));
@@ -65,13 +63,6 @@ public class ClientAnimator extends Animator {
         this.nextState = this.animation.hasEnterAnimation() ? AnimationState.ENTER : AnimationState.LOOP;
         this.procState = ProcessState.TRANSFER;
         this.shouldUpdate = true;
-
-        if (this.player == null) {
-            LocalPlayer localPlayer = Minecraft.getInstance().player;
-            assert localPlayer != null;
-            this.player = localPlayer.level().getPlayerByUUID(uuid);
-        }
-
         return true;
     }
 
@@ -88,7 +79,7 @@ public class ClientAnimator extends Animator {
     public void tick(float time) {
         if (this.animation != null) {
             this.shouldUpdate = true;
-            this.timer += time;
+            this.timer += time * speed;
 
             switch (this.procState) {
                 case TRANSFER:
@@ -117,7 +108,7 @@ public class ClientAnimator extends Animator {
         }
     }
 
-    public void update(PlayerModel<AbstractClientPlayer> model) {
+    public void update(PlayerModel<AbstractClientPlayer> model, Player player) {
         if (this.animation == null)
             return;
 
@@ -137,8 +128,8 @@ public class ClientAnimator extends Animator {
         }
     }
 
-    public void process(PlayerModel<AbstractClientPlayer> model) {
-        this.update(model);
+    public void process(PlayerModel<AbstractClientPlayer> model, Player player) {
+        this.update(model, player);
         process(ModelBone.HEAD, model.head);
         process(ModelBone.BODY, model.body);
         process(ModelBone.LEFT_ARM, model.leftArm);
@@ -185,11 +176,11 @@ public class ClientAnimator extends Animator {
     }
 
     public boolean isLocalPlayer() {
-        return this.player == Minecraft.getInstance().player;
+        return this.uuid.equals(Minecraft.getInstance().player.getUUID());
     }
 
-    public void reset() {
-        super.reset();
+    public void reset(boolean update) {
+        super.reset(update);
         this.processed = false;
 
         this.cache.forEach((bone, cache) -> {
@@ -197,10 +188,12 @@ public class ClientAnimator extends Animator {
             cache.rotation.set(0);
         });
 
-        this.update(new AnimatorDataPacket(this, false));
+        if (update) {
+            this.update(new AnimatorDataPacket(this, false));
+        }
     }
 
-    public void processRoot(PoseStack poseStack) {
+    public void processRoot(PoseStack poseStack, Player player) {
         if (this.animation == null || PlayerUtils.isRiding(player))
             return;
 

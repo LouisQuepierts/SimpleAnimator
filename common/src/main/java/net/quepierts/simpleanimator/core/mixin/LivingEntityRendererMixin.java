@@ -7,6 +7,7 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 import org.spongepowered.asm.mixin.Mixin;
@@ -29,7 +30,7 @@ public class LivingEntityRendererMixin<T extends LivingEntity, M extends EntityM
         ClientAnimator animator = SimpleAnimator.getClient().getClientAnimatorManager().getAnimator(pEntity.getUUID());
 
         if (animator != null && animator.isRunning()) {
-            animator.processRoot(pPoseStack);
+            animator.processRoot(pPoseStack, (Player) pEntity);
         }
     }
 }
