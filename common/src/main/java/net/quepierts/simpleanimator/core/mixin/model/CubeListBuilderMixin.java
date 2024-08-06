@@ -1,10 +1,13 @@
 package net.quepierts.simpleanimator.core.mixin.model;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.model.geom.builders.CubeDefinition;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.core.Direction;
-import net.quepierts.simpleanimator.core.client.CubeListBuilderManipulator;
+import net.quepierts.simpleanimator.core.client.util.CubeListBuilderManipulator;
+import net.quepierts.simpleanimator.core.mixin.accessor.CubeDefinitionAccessor;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -13,6 +16,7 @@ import org.spongepowered.asm.mixin.Unique;
 import java.util.List;
 import java.util.Set;
 
+@Environment(EnvType.CLIENT)
 @Mixin(CubeListBuilder.class)
 public abstract class CubeListBuilderMixin implements CubeListBuilderManipulator {
 

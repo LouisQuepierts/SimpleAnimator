@@ -1,5 +1,7 @@
 package net.quepierts.simpleanimator.core.network.packet;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.FriendlyByteBuf;
@@ -48,6 +50,7 @@ public class InteractInvitePacket extends UserPacket {
     }
 
     @Override
+    @Environment(EnvType.CLIENT)
     public void sync() {
         ClientLevel level = Minecraft.getInstance().level;
         Player requester = level.getPlayerByUUID(this.owner);

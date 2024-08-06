@@ -1,5 +1,7 @@
-package net.quepierts.simpleanimator.core.mixin.model;
+package net.quepierts.simpleanimator.core.mixin.accessor;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.model.geom.builders.CubeDefinition;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.core.Direction;
@@ -9,6 +11,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 import java.util.Set;
 
+@Environment(EnvType.CLIENT)
 @Mixin(CubeDefinition.class)
 public interface CubeDefinitionAccessor {
     @Invoker("<init>")

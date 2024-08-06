@@ -1,6 +1,10 @@
 package net.quepierts.simpleanimator.core;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mojang.logging.LogUtils;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.quepierts.simpleanimator.core.network.INetwork;
 import net.quepierts.simpleanimator.core.proxy.ClientProxy;
 import net.quepierts.simpleanimator.core.proxy.CommonProxy;
@@ -9,6 +13,7 @@ import org.slf4j.Logger;
 public abstract class SimpleAnimator {
 	public static final String MOD_ID = "simple_animator";
 	public static final Logger LOGGER = LogUtils.getLogger();
+	public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
 	private static CommonProxy proxy;
 	private static INetwork network;
@@ -23,6 +28,7 @@ public abstract class SimpleAnimator {
 		return proxy;
 	}
 
+	@Environment(EnvType.CLIENT)
 	public static ClientProxy getClient() {
 		return (ClientProxy) proxy;
 	}

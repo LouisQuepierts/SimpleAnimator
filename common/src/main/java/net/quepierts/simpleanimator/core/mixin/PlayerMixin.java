@@ -1,6 +1,8 @@
 package net.quepierts.simpleanimator.core.mixin;
 
 import com.mojang.authlib.GameProfile;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
@@ -57,6 +59,7 @@ public abstract class PlayerMixin extends Entity implements IAnimateHandler, IIn
 
     @Unique @Override
     public void simpleanimator$playAnimate(@NotNull ResourceLocation animation, boolean update) {
+        this.setYBodyRot(this.getYHeadRot());
         this.simpleanimator$animator.play(animation);
 
         if (update && this.isLocalPlayer()) {
@@ -66,9 +69,7 @@ public abstract class PlayerMixin extends Entity implements IAnimateHandler, IIn
 
     @Unique @Override
     public void simpleanimator$stopAnimate(boolean update) {
-        this.simpleanimator$animator.stop();
-
-        if (update && this.isLocalPlayer()) {
+        if (this.simpleanimator$animator.stop() && update && this.isLocalPlayer()) {
             SimpleAnimator.getNetwork().update(new AnimatorStopPacket(this.getUUID()));
         }
     }
@@ -87,7 +88,7 @@ public abstract class PlayerMixin extends Entity implements IAnimateHandler, IIn
             return false;
         }
 
-        if (!PlayerUtils.inSameDimension((Player) (Object) this, target) || this.distanceToSqr(target) > 1024) {
+        if (!PlayerUtils.inSameDimension((Player) (Object) this, target) || this.distanceToSqr(target) > SimpleAnimator.getProxy().getConfig().interactInviteDistanceSquare) {
             return false;
         }
 
@@ -107,7 +108,7 @@ public abstract class PlayerMixin extends Entity implements IAnimateHandler, IIn
     }
 
     @Unique @Override
-    public boolean simpleanimator$accept(@NotNull Player requester, boolean update) {
+    public boolean simpleanimator$accept(@NotNull Player requester, boolean update, boolean forced) {
         PlayerMixin req = (PlayerMixin) (Object) requester;
 
         if (!req.simpleanimator$request.hasRequest() || !this.getUUID().equals(req.simpleanimator$request.getTarget()))
@@ -117,35 +118,30 @@ public abstract class PlayerMixin extends Entity implements IAnimateHandler, IIn
             return false;
 
         this.simpleanimator$cancel(false);
+        this.simpleanimator$stopAnimate(false);
 
-        Vec3 position = PlayerUtils.getRelativePosition(requester, 1, 0);
+        Vec3 position = PlayerUtils.getRelativePositionWorldSpace(requester, 1, 0);
 
-        if (this.distanceToSqr(position) > 0.1f) {
+        if (!forced && this.distanceToSqr(position) > 0.1f) {
             if (this.isLocalPlayer()) {
-                SimpleAnimator.getClient()
-                        .getNavigator()
-                        .navigateTo(requester, 1, 0, () -> {
-                            this.simpleanimator$accept(requester, true);
-                            //SimpleAnimator.getNetwork().update(new InteractAcceptPacket(requester.getUUID(), this.getUUID()));
-                        });
+                simpleAnimator$navigate(requester);
             }
             return false;
         }
 
         Interaction interaction = SimpleAnimator.getProxy().getAnimationManager().getInteraction(req.simpleanimator$request.getInteraction());
-        req.simpleanimator$request.cancel();
+        req.simpleanimator$request.reset();
 
-        if (interaction == null)
-            return true;
-
-        req.simpleanimator$animator.play(interaction.requester());
-        this.simpleanimator$animator.play(interaction.receiver());
-
-        this.moveTo(position);
+        this.setPos(position);
         this.lookAt(EntityAnchorArgument.Anchor.EYES, req.getEyePosition());
 
+        if (interaction != null) {
+            req.simpleanimator$animator.play(interaction.requester());
+            this.simpleanimator$animator.play(interaction.receiver());
+        }
+
         if (update && this.isLocalPlayer()) {
-            SimpleAnimator.getNetwork().update(new InteractAcceptPacket(requester.getUUID(), this.getUUID()));
+            SimpleAnimator.getNetwork().update(new InteractAcceptPacket(requester.getUUID(), this.getUUID(), forced));
         }
         return true;
     }
@@ -156,7 +152,7 @@ public abstract class PlayerMixin extends Entity implements IAnimateHandler, IIn
             return;
 
         this.simpleanimator$animator.stop();
-        this.simpleanimator$request.cancel();
+        this.simpleanimator$request.reset();
 
         if (update && this.isLocalPlayer()) {
             SimpleAnimator.getNetwork().update(new InteractCancelPacket(this.getUUID()));
@@ -171,5 +167,15 @@ public abstract class PlayerMixin extends Entity implements IAnimateHandler, IIn
     @Unique @Override @NotNull
     public RequestHolder simpleanimator$getRequest() {
         return this.simpleanimator$request;
+    }
+
+    @Unique @Environment(EnvType.CLIENT)
+    private void simpleAnimator$navigate(Player requester) {
+        SimpleAnimator.getClient()
+                .getNavigator()
+                .navigateTo(requester, 1, 0, () -> {
+                    this.simpleanimator$accept(requester, true, true);
+                    //SimpleAnimator.getNetwork().update(new InteractAcceptPacket(requester.getUUID(), this.getUUID()));
+                });
     }
 }

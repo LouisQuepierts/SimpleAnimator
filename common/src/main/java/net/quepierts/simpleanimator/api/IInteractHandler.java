@@ -5,9 +5,10 @@ import net.minecraft.world.entity.player.Player;
 import net.quepierts.simpleanimator.core.animation.RequestHolder;
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("unused")
 public interface IInteractHandler {
     boolean simpleanimator$invite(@NotNull Player target, @NotNull ResourceLocation interact, boolean update);
-    boolean simpleanimator$accept(@NotNull Player requester, boolean update);
+    boolean simpleanimator$accept(@NotNull Player requester, boolean update, boolean forced);
     
     void simpleanimator$cancel(boolean update);
     

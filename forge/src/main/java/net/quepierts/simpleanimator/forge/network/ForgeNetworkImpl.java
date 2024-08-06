@@ -67,7 +67,6 @@ public class ForgeNetworkImpl implements INetwork {
                 .decoder(type.decoder)
                 .consumerNetworkThread((packet, supplier) -> {
                     NetworkEvent.Context context = supplier.get();
-                    SimpleAnimator.LOGGER.info("Handler Packet: {}", packet.getClass().getSimpleName());
                     context.enqueueWork(() -> type.handler.accept(packet, new NetworkContext(s2f(context.getDirection()), context.getSender())));
                     context.setPacketHandled(true);
                 })

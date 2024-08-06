@@ -15,7 +15,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.quepierts.simpleanimator.api.IInteractHandler;
-import net.quepierts.simpleanimator.core.PlayerUtils;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.animation.RequestHolder;
 import net.quepierts.simpleanimator.core.network.packet.InteractAcceptPacket;
@@ -50,7 +49,7 @@ public class InteractCommand {
 
         ResourceLocation location = ResourceLocationArgument.getId(context, "interaction");
 
-        if (!PlayerUtils.inSameDimension(player, target) || player.distanceToSqr(target) > 1024) {
+        if (!((IInteractHandler) player).simpleanimator$invite(target, location, false)) {
             return 0;
         }
 
@@ -80,7 +79,7 @@ public class InteractCommand {
             return 0;
         }
 
-        SimpleAnimator.getNetwork().sendToAllPlayers(new InteractAcceptPacket(requester.getUUID(), player.getUUID()), player);
+        SimpleAnimator.getNetwork().sendToAllPlayers(new InteractAcceptPacket(requester.getUUID(), player.getUUID(), false), player);
         return 1;
     }
 

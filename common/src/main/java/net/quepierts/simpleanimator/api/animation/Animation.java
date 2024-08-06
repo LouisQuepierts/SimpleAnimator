@@ -13,8 +13,9 @@ import java.io.Reader;
 import java.util.Optional;
 
 public class Animation {
-    private static final String KEY_REQUEST = "request";
+    private static final String KEY_REQUEST = "invite";
     private static final String KEY_WAITING = "waiting";
+    private static final String KEY_CANCEL = "cancel";
     private static final String KEY_ENTER = "enter";
     private static final String KEY_LOOP = "main";
     private static final String KEY_EXIT = "exit";
@@ -58,9 +59,10 @@ public class Animation {
 
             if (!waiting.repeatable())
                 throw new RuntimeException("\"waiting\" should be looped!");
+            final AnimationSection cancel = AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_CANCEL), Type.INVITE);
 
             animations[0] = new Animation(
-                    request, waiting, null,
+                    request, waiting, cancel,
                     override, movable, true, Type.INVITE
             );
             animations[1] = new Animation(
@@ -108,7 +110,7 @@ public class Animation {
     }
 
     private static boolean isInteractiveAnimation(JsonObject json) {
-        return json.has("request");
+        return json.has(KEY_REQUEST);
     }
 
     private static boolean getBoolean(JsonObject json, String key, boolean def) {
@@ -124,11 +126,12 @@ public class Animation {
     }
 
     public float getFadeIn(ClientAnimator animator) {
-        AnimationState nextState = animator.getNextState();
         AnimationSection animation = get(animator.getCurState());
 
-        if (nextState == AnimationState.IDLE) {
+        if (animator.getNextState() == AnimationState.IDLE) {
             return animation.getFadeOut();
+        } else if (animator.getCurState() == AnimationState.IDLE) {
+            return get(animator.getNextState()).getFadeIn();
         } else {
             return animation.getFadeIn();
         }

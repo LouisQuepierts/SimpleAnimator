@@ -9,7 +9,6 @@ import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
@@ -17,7 +16,6 @@ import net.quepierts.simpleanimator.core.command.AnimateCommand;
 import net.quepierts.simpleanimator.core.command.InteractCommand;
 import net.quepierts.simpleanimator.core.network.NetworkPackets;
 import net.quepierts.simpleanimator.core.proxy.CommonProxy;
-import net.quepierts.simpleanimator.forge.config.ForgeCommonConfiguration;
 
 import java.util.UUID;
 
@@ -26,7 +24,6 @@ public class ForgeCommonProxy {
         MinecraftForge.EVENT_BUS.register(new ForgeCommonProxy());
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         bus.addListener(ForgeCommonProxy::commonSetup);
-        ForgeCommonConfiguration.register(ModLoadingContext.get(), bus);
     }
 
     private static void commonSetup(FMLCommonSetupEvent event) {
@@ -71,9 +68,10 @@ public class ForgeCommonProxy {
 
     @SubscribeEvent
     public void onOnDatapackSync(OnDatapackSyncEvent event) {
-        if (event.getPlayer() == null)
-            return;
-
-        this.proxy.getAnimationManager().sync(event.getPlayer());
+        if (event.getPlayer() != null) {
+            this.proxy.getAnimationManager().sync(event.getPlayer());
+        } else {
+            this.proxy.getAnimationManager().sync(event.getPlayerList());
+        }
     }
 }

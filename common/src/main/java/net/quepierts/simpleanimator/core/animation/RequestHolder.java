@@ -24,7 +24,7 @@ public class RequestHolder {
         return this.interaction;
     }
 
-    public void cancel() {
+    public void reset() {
         this.target = null;
         this.interaction = null;
     }

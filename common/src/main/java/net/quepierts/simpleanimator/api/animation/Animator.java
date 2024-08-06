@@ -30,7 +30,6 @@ public class Animator {
     }
 
     public void sync(AnimatorDataPacket packet) {
-        SimpleAnimator.LOGGER.debug("Update: {} {} ,", this.getClass().getSimpleName(), packet);
         this.animationLocation = packet.animationLocation;
         this.animation = SimpleAnimator.getProxy().getAnimationManager().getAnimation(packet.animationLocation);
         this.curState = packet.curState;

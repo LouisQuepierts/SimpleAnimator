@@ -1,5 +1,7 @@
 package net.quepierts.simpleanimator.core.network.packet;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
@@ -24,6 +26,7 @@ public class InteractCancelPacket extends UserPacket {
     }
 
     @Override
+    @Environment(EnvType.CLIENT)
     protected void sync() {
         SimpleAnimator.getProxy().getInteractionManager().cancel(this.owner);
     }

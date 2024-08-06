@@ -4,6 +4,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.quepierts.simpleanimator.api.animation.Animator;
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("unused")
 public interface IAnimateHandler {
     boolean simpleanimator$isRunning();
 

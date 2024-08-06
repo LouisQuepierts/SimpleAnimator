@@ -13,30 +13,34 @@ import java.util.UUID;
 
 public class InteractAcceptPacket extends UserPacket {
     private final UUID target;
+    private final boolean forced;
 
     public InteractAcceptPacket(FriendlyByteBuf byteBuf) {
         super(byteBuf);
         this.target = byteBuf.readUUID();
+        this.forced = byteBuf.readBoolean();
     }
 
-    public InteractAcceptPacket(UUID requester, UUID receiver) {
+    public InteractAcceptPacket(UUID requester, UUID receiver, boolean forced) {
         super(requester);
         this.target = receiver;
+        this.forced = forced;
     }
 
     @Override
     public void write(FriendlyByteBuf buffer) {
         super.write(buffer);
         buffer.writeUUID(this.target);
+        buffer.writeBoolean(this.forced);
     }
 
     @Override
     public void update(@NotNull ServerPlayer sender) {
-        Player target = sender.level().getPlayerByUUID(this.target);
-        if (target == null)
+        Player requester = sender.level().getPlayerByUUID(this.owner);
+        if (requester == null)
             return;
 
-        if (((IInteractHandler) target).simpleanimator$accept(sender, false)) {
+        if (((IInteractHandler) sender).simpleanimator$accept(requester, false, forced)) {
             SimpleAnimator.getNetwork().sendToPlayers(this, sender);
         }
     }
@@ -48,6 +52,6 @@ public class InteractAcceptPacket extends UserPacket {
         Player requester = level.getPlayerByUUID(this.owner);
         Player target = level.getPlayerByUUID(this.target);
 
-        ((IInteractHandler) target).simpleanimator$accept(requester, false);
+        ((IInteractHandler) target).simpleanimator$accept(requester, false, forced);
     }
 }

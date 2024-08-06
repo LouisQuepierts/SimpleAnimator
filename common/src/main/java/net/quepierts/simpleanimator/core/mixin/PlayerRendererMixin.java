@@ -3,17 +3,16 @@ package net.quepierts.simpleanimator.core.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.quepierts.simpleanimator.api.IAnimateHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -35,16 +34,13 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
             ),
             cancellable = true
     )
-    public void cancel(PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, AbstractClientPlayer pPlayer, ModelPart pRendererArm, ModelPart pRendererArmwear, CallbackInfo ci) {
-        PlayerModel<AbstractClientPlayer> model = this.getModel();
-        LocalPlayer pEntity = Minecraft.getInstance().player;
-        float yaw = pEntity.yHeadRot - pEntity.yBodyRot;
-        float pitch = pEntity.getXRot();
-        model.setupAnim(pPlayer, 0.0F, 0.0F, 0.0F, yaw, pitch);
-        pRendererArm.xRot = 0.0F;
-        pRendererArm.render(pPoseStack, pBuffer.getBuffer(RenderType.entitySolid(pPlayer.getSkinTextureLocation())), pCombinedLight, OverlayTexture.NO_OVERLAY);
-        pRendererArmwear.xRot = 0.0F;
-        pRendererArmwear.render(pPoseStack, pBuffer.getBuffer(RenderType.entityTranslucent(pPlayer.getSkinTextureLocation())), pCombinedLight, OverlayTexture.NO_OVERLAY);
-        ci.cancel();
+    public void forceSetupAnimWithRotation(PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, AbstractClientPlayer pPlayer, ModelPart pRendererArm, ModelPart pRendererArmwear, CallbackInfo ci) {
+        if (((IAnimateHandler) pPlayer).simpleanimator$getAnimator().isRunning()) {
+            pRendererArm.xRot = 0.0F;
+            pRendererArm.render(pPoseStack, pBuffer.getBuffer(RenderType.entitySolid(pPlayer.getSkinTextureLocation())), pCombinedLight, OverlayTexture.NO_OVERLAY);
+            pRendererArmwear.xRot = 0.0F;
+            pRendererArmwear.render(pPoseStack, pBuffer.getBuffer(RenderType.entityTranslucent(pPlayer.getSkinTextureLocation())), pCombinedLight, OverlayTexture.NO_OVERLAY);
+            ci.cancel();
+        }
     }
 }

@@ -5,19 +5,12 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.model.geom.PartPose;
-import net.minecraft.client.model.geom.builders.CubeDeformation;
-import net.minecraft.client.model.geom.builders.CubeListBuilder;
-import net.minecraft.client.model.geom.builders.MeshDefinition;
-import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
-import net.quepierts.simpleanimator.core.client.CubeListBuilderManipulator;
-import net.quepierts.simpleanimator.core.config.ClientConfiguration;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,8 +18,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.Set;
 
@@ -56,7 +47,6 @@ public class PlayerModelMixin<T extends LivingEntity> extends HumanoidModel<T> {
             at = @At("HEAD")
     )
     public void resetModelParts(T livingEntity, float f, float g, float h, float i, float j, CallbackInfo ci) {
-        // Prevent model parts will fly away
         this.head.resetPose();
         this.body.resetPose();
         this.leftArm.resetPose();
@@ -112,7 +102,7 @@ public class PlayerModelMixin<T extends LivingEntity> extends HumanoidModel<T> {
         }
     }
 
-    @Inject(
+    /*@Inject(
             method = "createMesh",
             at = @At(
                     value = "RETURN",
@@ -121,7 +111,7 @@ public class PlayerModelMixin<T extends LivingEntity> extends HumanoidModel<T> {
             locals = LocalCapture.CAPTURE_FAILHARD
     )
     private static void replaceMesh(CubeDeformation cubeDeformation, boolean bl, CallbackInfoReturnable<MeshDefinition> cir, MeshDefinition meshDefinition, PartDefinition partDefinition) {
-        if (!ClientConfiguration.hasBendModel())
+        if (!SimpleAnimator.getClient().getClientConfiguration().s)
             return;
 
         if (bl) {
@@ -149,5 +139,5 @@ public class PlayerModelMixin<T extends LivingEntity> extends HumanoidModel<T> {
             left_arm.addOrReplaceChild("left_hand_sleeve", ((CubeListBuilderManipulator) CubeListBuilder.create().texOffs(48, 54)).simpleAnimator$addBox(-2.0F, 0.0F, -2.0F, 4.0F, 6.0F, 4.0F, new CubeDeformation(0.0F), LOWER_MODEL), PartPose.offset(1.0F, 4.0F, 0.0F));
             right_arm.addOrReplaceChild("right_hand_sleeve", ((CubeListBuilderManipulator) CubeListBuilder.create().texOffs(40, 38)).simpleAnimator$addBox(-2.0F, 0.0F, -2.0F, 4.0F, 6.0F, 4.0F, new CubeDeformation(0.0F), LOWER_MODEL), PartPose.offset(1.0F, 4.0F, 0.0F));
         }
-    }
+    }*/
 }

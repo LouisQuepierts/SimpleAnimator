@@ -1,4 +1,4 @@
-package net.quepierts.simpleanimator.core.client;
+package net.quepierts.simpleanimator.core.client.util;
 
 import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;

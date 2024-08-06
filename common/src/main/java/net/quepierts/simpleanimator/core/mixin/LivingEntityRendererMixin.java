@@ -7,9 +7,11 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.quepierts.simpleanimator.core.SimpleAnimator;
+import net.quepierts.simpleanimator.api.IAnimateHandler;
+import net.quepierts.simpleanimator.core.PlayerUtils;
+import net.quepierts.simpleanimator.core.animation.ModelBone;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
+import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -27,10 +29,20 @@ public class LivingEntityRendererMixin<T extends LivingEntity, M extends EntityM
             )
     )
     public void translateRoot(T pEntity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight, CallbackInfo ci) {
-        ClientAnimator animator = SimpleAnimator.getClient().getClientAnimatorManager().getAnimator(pEntity.getUUID());
+        if (PlayerUtils.isRiding(pEntity))
+            return;
 
-        if (animator != null && animator.isRunning()) {
-            animator.processRoot(pPoseStack, (Player) pEntity);
+        if (pEntity instanceof IAnimateHandler handler) {
+            ClientAnimator animator = (ClientAnimator) handler.simpleanimator$getAnimator();
+            if (animator.isRunning() && animator.isProcessed()) {
+                ClientAnimator.Cache root = animator.getCache(ModelBone.ROOT);
+                pPoseStack.mulPose(new Quaternionf().rotationXYZ(
+                        root.rotation().x,
+                        root.rotation().y,
+                        root.rotation().z
+                ));
+                pPoseStack.translate(0f, root.position().y / -16.0f, 0f);
+            }
         }
     }
 }

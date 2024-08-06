@@ -1,6 +1,5 @@
 package net.quepierts.simpleanimator.core.client;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -9,16 +8,16 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.quepierts.simpleanimator.api.animation.Animator;
 import net.quepierts.simpleanimator.core.PlayerUtils;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.animation.AnimationState;
-import net.quepierts.simpleanimator.api.animation.Animator;
 import net.quepierts.simpleanimator.core.animation.ModelBone;
 import net.quepierts.simpleanimator.core.client.state.IAnimationState;
 import net.quepierts.simpleanimator.core.network.packet.AnimatorDataPacket;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.Collections;
@@ -68,12 +67,12 @@ public class ClientAnimator extends Animator {
     }
 
     public boolean stop() {
-        if (!super.stop())
+        if (this.animation == null || this.canStop() && !super.stop())
             return false;
         this.timer = 0;
         this.nextState = this.animation.hasExitAnimation() ? AnimationState.EXIT : AnimationState.IDLE;
         this.procState = ProcessState.TRANSFER;
-        this.processed = false;
+        this.processed = true;
         return true;
     }
 
@@ -194,25 +193,29 @@ public class ClientAnimator extends Animator {
         }
     }
 
-    public void processRoot(PoseStack poseStack, Player player) {
-        if (this.animation == null || PlayerUtils.isRiding(player))
-            return;
-
+    public Vector3f getCameraPosition(Entity entity) {
+        Cache head = cache.get(ModelBone.HEAD);
         Cache root = cache.get(ModelBone.ROOT);
-        Matrix4f mat = new Matrix4f();
-        mat.translate(
-                root.position.x / 16,
-                root.position.y / -16,  // invert Y axis
-                root.position.z / 16
-        );
 
-        mat.rotate(new Quaternionf().rotationXYZ(
-                root.rotation.x,
-                root.rotation.y,
-                root.rotation.z
-                )
-        );
-        poseStack.mulPoseMatrix(mat);
+        Vector3f position;
+        if (root.rotation().x == 0 && root.rotation().y == 0 && root.rotation().z == 0) {
+            position = new Vector3f(head.position());
+        } else {
+            float eyeHeight = entity.getEyeHeight() * 16.0f;
+            position = new Matrix4f()
+                    .rotateXYZ(root.rotation()).invert()
+                    .transformPosition(new Vector3f(head.position()).add(0, eyeHeight, 0))
+                    .sub(0, eyeHeight, 0);
+        }
+
+        position.add(root.position())
+                .div(-16.0f, 16.0f, -16.0f);
+
+        return position;
+    }
+
+    public Vector3f getCameraRotation() {
+        return new Vector3f(cache.get(ModelBone.HEAD).rotation()).add(cache.get(ModelBone.ROOT).rotation());
     }
 
     public record Cache(Vector3f position, Vector3f rotation) {}

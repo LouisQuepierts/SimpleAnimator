@@ -1,7 +1,8 @@
 package net.quepierts.simpleanimator.fabric.network;
 
 import com.google.common.collect.ImmutableMap;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.FabricPacket;
 import net.fabricmc.fabric.api.networking.v1.PacketType;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -17,7 +18,7 @@ import java.util.HashSet;
 import java.util.Locale;
 
 public class FabricNetworkImpl implements INetwork {
-    private final ImmutableMap<Class<? extends IPacket>, PacketType<FabricPacketImpl>> packets;
+    protected final ImmutableMap<Class<? extends IPacket>, PacketType<FabricPacketImpl>> packets;
 
     public FabricNetworkImpl() {
         NetworkPackets[] values = NetworkPackets.values();
@@ -80,23 +81,20 @@ public class FabricNetworkImpl implements INetwork {
             if (serverPlayer == player)
                 continue;
 
-            ServerPlayNetworking.send(player, new FabricPacketImpl(packet));
+            ServerPlayNetworking.send(serverPlayer, new FabricPacketImpl(packet));
         }
     }
 
     @Override
+    @Environment(EnvType.CLIENT)
     public void update(IPacket packet) {
-        PacketType<FabricPacketImpl> type = this.getPacketID(packet);
-        if (type == null)
-            return;
-        ClientPlayNetworking.send(new FabricPacketImpl(packet));
     }
 
-    private PacketType<FabricPacketImpl> getPacketID(IPacket packet) {
+    protected PacketType<FabricPacketImpl> getPacketID(IPacket packet) {
         return this.packets.get(packet.getClass());
     }
 
-    private boolean notExist(IPacket packet) {
+    protected boolean notExist(IPacket packet) {
         return !this.packets.containsKey(packet.getClass());
     }
 
@@ -109,16 +107,9 @@ public class FabricNetworkImpl implements INetwork {
                     (fabricPacket, player, responseSender) -> fabricPacket.getPacket().handle(new NetworkContext(NetworkDirection.PLAY_TO_SERVER, player))
             );
         }
-
-        if (packet.direction != NetworkDirection.PLAY_TO_SERVER) {
-            ClientPlayNetworking.registerGlobalReceiver(
-                    this.packets.get(packet.type),
-                    (fabricPacket, player, responseSender) -> fabricPacket.getPacket().handle(new NetworkContext(NetworkDirection.PLAY_TO_CLIENT, null))
-            );
-        }
     }
 
-    private final class FabricPacketImpl implements FabricPacket {
+    protected final class FabricPacketImpl implements FabricPacket {
         private final IPacket packet;
         public FabricPacketImpl(IPacket packet) {
             this.packet = packet;

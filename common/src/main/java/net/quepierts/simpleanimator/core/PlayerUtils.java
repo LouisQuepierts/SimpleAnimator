@@ -1,12 +1,13 @@
 package net.quepierts.simpleanimator.core;
 
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
 public class PlayerUtils {
-    public static boolean isRiding(Player player) {
+    public static boolean isRiding(Entity player) {
         return player != null && player.getVehicle() != null;
     }
 
@@ -25,16 +26,21 @@ public class PlayerUtils {
         return (float) Math.toRadians(normalizeAngle((float) Math.toDegrees(rad)));
     }
 
-    public static Vec3 getRelativePosition(Player player, double forward, double left) {
+    public static Vec3 getRelativePositionWorldSpace(Player player, double forward, double left) {
         Vec2 vec2 = new Vec2(0, player.yBodyRot);
         Vec3 vec3 = player.position();
-        float f = Mth.cos((vec2.y + 90.0F) * ((float)Math.PI / 180F));
-        float f1 = Mth.sin((vec2.y + 90.0F) * ((float)Math.PI / 180F));
-        Vec3 vec31 = new Vec3(f, 0, f1);
-        Vec3 vec33 = new Vec3(-f1, 0, f);
-        double d0 = vec31.x * forward + vec33.x * left;
-        double d2 = vec31.z * forward + vec33.z * left;
+        final float f = Mth.cos((vec2.y + 90.0F) * ((float)Math.PI / 180F));
+        final float f1 = Mth.sin((vec2.y + 90.0F) * ((float)Math.PI / 180F));
+        final double d0 = f * forward - f1 * left;
+        final double d2 = f1 * forward + f * left;
         return new Vec3(vec3.x + d0, vec3.y, vec3.z + d2);
+    }
+
+    public static Vec3 getRelativePosition(Player player, double forward, double left) {
+        Vec2 vec2 = new Vec2(0, player.yBodyRot);
+        final float f = Mth.cos((vec2.y + 90.0F) * ((float)Math.PI / 180F));
+        final float f1 = Mth.sin((vec2.y + 90.0F) * ((float)Math.PI / 180F));
+        return new Vec3(f * forward - f1 * left, 0, f1 * forward + f * left);
     }
 
     public static double distanceSqr2D(Vec3 src, Vec3 dest) {

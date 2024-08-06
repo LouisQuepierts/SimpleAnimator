@@ -7,6 +7,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import net.quepierts.simpleanimator.api.IAnimateHandler;
 import net.quepierts.simpleanimator.core.PlayerUtils;
 
 @Environment(EnvType.CLIENT)
@@ -26,18 +27,23 @@ public class ClientPlayerNavigator {
     public void tick() {
         switch (phrase) {
             case RUNNING:
+                LocalPlayer player = Minecraft.getInstance().player;
+
                 if (!lastTargetPosition.equals(target.position())) {
                     lastTargetPosition = target.position();
-                    targetPosition = PlayerUtils.getRelativePosition(target, forward, left);
+                    targetPosition = PlayerUtils.getRelativePositionWorldSpace(target, forward, left);
                 }
 
-                LocalPlayer player = Minecraft.getInstance().player;
                 if (timer ++ > 1000) {
                     this.stop();
                     return;
                 }
 
-                if (PlayerUtils.distanceSqr2D(player.position(), targetPosition) < 0.001) {
+                if (((IAnimateHandler) player).simpleanimator$getAnimator().isRunning()) {
+                    return;
+                }
+
+                if (player.distanceToSqr(targetPosition) < 0.001) {
                     player.moveTo(targetPosition);
                     this.phrase = Phrase.FINISH;
                     this.timer = 0;

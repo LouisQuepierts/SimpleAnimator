@@ -27,11 +27,14 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 }
 
+String forge_version_range = "${rootProject.forge_version_range}"
+
 processResources {
     inputs.property "version", project.version
 
     filesMatching("META-INF/mods.toml") {
         expand "version": project.version
+        expand "forge_version_range": forge_version_range
     }
 }
 
@@ -45,7 +48,7 @@ shadowJar {
 remapJar {
     inputFile.set(shadowJar.archiveFile)
     dependsOn shadowJar
-    archiveClassifier.set("forge")
+    archiveAppendix.set("forge-${rootProject.minecraft_version}")
 }
 
 jar {

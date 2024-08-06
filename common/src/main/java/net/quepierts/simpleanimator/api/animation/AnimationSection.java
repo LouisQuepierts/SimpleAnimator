@@ -1,6 +1,5 @@
 package net.quepierts.simpleanimator.api.animation;
 
-import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -9,14 +8,16 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringUtil;
-import net.quepierts.simpleanimator.core.animation.AnimationState;
 import net.quepierts.simpleanimator.core.animation.LerpMode;
 import net.quepierts.simpleanimator.core.animation.ModelBone;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 import net.quepierts.simpleanimator.core.client.state.IAnimationState;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public class AnimationSection {
     public static final Vector3f ZERO = new Vector3f(0);
@@ -266,7 +267,7 @@ public class AnimationSection {
         final KeyFrame[] rotFrames = data.rotation();
 
         if (animator.isTransferring()) {
-            final float time = Mth.clamp(animator.getTimer() / fadeIn, 0.0f, 1.0f);
+            final float time = fadeIn == 0 ? 1.0f : Mth.clamp(animator.getTimer() / fadeIn, 0.0f, 1.0f);
 
             if (posFrames.length != 0) {
                 cache.position().set(linearLerp(
@@ -298,39 +299,6 @@ public class AnimationSection {
             final float time = Mth.clamp(animator.getTimer(), 0.0f, length);
             interpolate(posFrames, cache.position(), time);
             interpolate(rotFrames, cache.rotation(), time);
-        }
-    }
-
-    public void update(ModelBone bone, PartPose pose, ClientAnimator.Cache cache, AnimationState state, float time) {
-        BoneData data = this.keyFrames.get(bone);
-        if (data == null) {
-            cache.position().set(pose.x, pose.y, pose.z);
-            cache.rotation().set(pose.xRot, pose.yRot, pose.zRot);
-            return;
-        }
-
-        Vector3f position = new Vector3f(pose.x, pose.y, pose.z);
-        Vector3f rotation = new Vector3f(pose.xRot, pose.yRot, pose.zRot);
-        float localT;
-        KeyFrame[] posFrames = data.position();
-        KeyFrame[] rotFrames = data.rotation();
-        switch (state) {
-            case ENTER:
-                localT = time / fadeIn;
-                if (posFrames.length != 0)
-                    cache.position().set(linearLerp(position, posFrames[0].vec3(), localT));
-                if (rotFrames.length != 0)
-                    cache.rotation().set(linearLerp(rotation, rotFrames[0].vec3(), localT));
-                break;
-            case LOOP:
-                interpolate(posFrames, cache.position(), time);
-                interpolate(rotFrames, cache.rotation(), time);
-                break;
-            case EXIT:
-                localT = time / fadeOut;
-                cache.position().set(linearLerp(cache.position(), position, localT));
-                cache.rotation().set(linearLerp(cache.rotation(), rotation, localT));
-                break;
         }
     }
 
@@ -418,11 +386,10 @@ public class AnimationSection {
         byteBuf.writeFloat(animation.length);
         byteBuf.writeFloat(animation.fadeIn);
         byteBuf.writeFloat(animation.fadeOut);
-        byteBuf.writeMap(
-                animation.keyFrames,
-                FriendlyByteBuf::writeEnum,
-                BoneData::toNetwork
-        );
+
+        for (ModelBone value : ModelBone.values()) {
+            byteBuf.writeOptional(Optional.ofNullable(animation.keyFrames.get(value)), BoneData::toNetwork);
+        }
     }
 
     public static AnimationSection fromNetwork(FriendlyByteBuf byteBuf) {
@@ -430,11 +397,11 @@ public class AnimationSection {
         final float length = byteBuf.readFloat();
         final float fadeIn = byteBuf.readFloat();
         final float fadeOut = byteBuf.readFloat();
-        final EnumMap<ModelBone, BoneData> map = byteBuf.readMap(
-                i -> Maps.newEnumMap(ModelBone.class),
-                buf -> buf.readEnum(ModelBone.class),
-                BoneData::fromNetwork
-        );
+        final EnumMap<ModelBone, BoneData> map = new EnumMap<>(ModelBone.class);
+        for (ModelBone value : ModelBone.values()) {
+            Optional<BoneData> optional = byteBuf.readOptional(BoneData::fromNetwork);
+            optional.ifPresent(boneData -> map.put(value, boneData));
+        }
         return new AnimationSection(repeat, length, fadeIn, fadeOut, map);
     }
 
@@ -455,17 +422,30 @@ public class AnimationSection {
 
     public record BoneData(KeyFrame[] rotation, KeyFrame[] position) {
         public static void toNetwork(FriendlyByteBuf byteBuf, BoneData data) {
-            byteBuf.writeCollection(Arrays.asList(data.rotation), KeyFrame::toNetwork);
-            byteBuf.writeCollection(Arrays.asList(data.position), KeyFrame::toNetwork);
+            writeArray(byteBuf, data.rotation);
+            writeArray(byteBuf, data.position);
         }
 
         public static BoneData fromNetwork(FriendlyByteBuf byteBuf) {
-            List<KeyFrame> rotation = byteBuf.readList(KeyFrame::fromNetwork);
-            List<KeyFrame> position = byteBuf.readList(KeyFrame::fromNetwork);
-            return new BoneData(
-                    rotation.toArray(new KeyFrame[0]),
-                    position.toArray(new KeyFrame[0])
-            );
+            KeyFrame[] rotate = readArray(byteBuf);
+            KeyFrame[] position = readArray(byteBuf);
+            return new BoneData(rotate, position);
+        }
+
+        private static void writeArray(FriendlyByteBuf byteBuf, KeyFrame[] arr) {
+            byteBuf.writeVarInt(arr.length);
+            for (KeyFrame keyFrame : arr) {
+                KeyFrame.toNetwork(byteBuf, keyFrame);
+            }
+        }
+
+        private static KeyFrame[] readArray(FriendlyByteBuf byteBuf) {
+            int i = byteBuf.readVarInt();
+            KeyFrame[] arr = new KeyFrame[i];
+            for (int i1 = 0; i1 < i; i1++) {
+                arr[i1] = KeyFrame.fromNetwork(byteBuf);
+            }
+            return arr;
         }
     }
 }

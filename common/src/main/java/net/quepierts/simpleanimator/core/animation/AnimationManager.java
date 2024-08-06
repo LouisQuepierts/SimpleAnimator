@@ -6,7 +6,6 @@ import com.google.gson.JsonParser;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import net.minecraft.Util;
-import net.minecraft.client.Minecraft;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -108,7 +107,6 @@ public class AnimationManager implements PreparableReloadListener {
                     list.add(CompletableFuture.supplyAsync(() -> {
                         try (Reader reader = resource.openAsReader()) {
                             Animation[] animations = Animation.fromStream(reader);
-                            LOGGER.warn("Loaded animation {} from {} in data pack {}",  resourceLocation, location, resource.sourcePackId());
                             return Pair.of(resourceLocation, animations);
                         } catch (IOException e) {
                             LOGGER.warn("Couldn't read animation {} from {} in data pack {}", resourceLocation, location, resource.sourcePackId());
@@ -200,9 +198,6 @@ public class AnimationManager implements PreparableReloadListener {
     }
 
     public void sync(ServerPlayer player) {
-        if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.getUUID().equals(player.getUUID()))
-            return;
-
         LOGGER.info("Send Animations to Client");
         SimpleAnimator.getNetwork().sendToPlayer(new ClientUpdateAnimationPacket(this.animations), player);
         SimpleAnimator.getNetwork().sendToPlayer(new ClientUpdateInteractionPacket(this.interactions), player);
@@ -211,20 +206,10 @@ public class AnimationManager implements PreparableReloadListener {
     public void sync(PlayerList list) {
         ClientUpdateAnimationPacket animationPacket = new ClientUpdateAnimationPacket(this.animations);
         ClientUpdateInteractionPacket interactionPacket = new ClientUpdateInteractionPacket(this.interactions);
-        if (Minecraft.getInstance().player != null) {
-            UUID uuid = Minecraft.getInstance().player.getUUID();
-            for (ServerPlayer player : list.getPlayers()) {
-                if (player.getUUID().equals(uuid))
-                    continue;
-                SimpleAnimator.getNetwork().sendToPlayer(animationPacket, player);
-                SimpleAnimator.getNetwork().sendToPlayer(interactionPacket, player);
-            }
 
-        } else {
-            for (ServerPlayer player : list.getPlayers()) {
-                SimpleAnimator.getNetwork().sendToPlayer(animationPacket, player);
-                SimpleAnimator.getNetwork().sendToPlayer(interactionPacket, player);
-            }
+        for (ServerPlayer player : list.getPlayers()) {
+            SimpleAnimator.getNetwork().sendToPlayer(animationPacket, player);
+            SimpleAnimator.getNetwork().sendToPlayer(interactionPacket, player);
         }
     }
 
