@@ -43,6 +43,10 @@ public class InteractionManager {
         return this.requests.computeIfAbsent(uuid, RequestHolder::new);
     }
 
+    public void remove(UUID uuid) {
+        this.requests.remove(uuid);
+    }
+
     public record Request(
             UUID target,
             ResourceLocation interaction

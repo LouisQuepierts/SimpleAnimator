@@ -5,7 +5,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
+import io.netty.buffer.Unpooled;
 import net.minecraft.Util;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,6 +21,7 @@ import net.quepierts.simpleanimator.api.animation.Interaction;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.network.packet.batch.ClientUpdateAnimationPacket;
 import net.quepierts.simpleanimator.core.network.packet.batch.ClientUpdateInteractionPacket;
+import net.quepierts.simpleanimator.core.network.packet.batch.PacketCache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -44,6 +47,9 @@ public class AnimationManager implements PreparableReloadListener {
 
     private ImmutableMap<ResourceLocation, Animation> animations;
     private ImmutableMap<ResourceLocation, Interaction> interactions;
+
+    private final PacketCache cacheAnimations = new PacketCache();
+    private final PacketCache cacheInteractions = new PacketCache();
 
     @Nullable
     public Animation getAnimation(ResourceLocation location) {
@@ -71,6 +77,9 @@ public class AnimationManager implements PreparableReloadListener {
                     collect(join, animationBuilder, interactionBuilder);
                     this.animations = animationBuilder.build();
                     this.interactions = interactionBuilder.build();
+
+                    this.cacheAnimations.reset(new ClientUpdateAnimationPacket(this.animations));
+                    this.cacheInteractions.reset(new ClientUpdateInteractionPacket(this.interactions));
                 });
     }
 
@@ -165,13 +174,13 @@ public class AnimationManager implements PreparableReloadListener {
 
     public void handleUpdateAnimations(ClientUpdateAnimationPacket packet) {
         SimpleAnimator.getProxy().getAnimatorManager().reset();
-        LOGGER.info("Sync Animations From Server");
+        LOGGER.debug("Sync Animations From Server");
         Map<ResourceLocation, Animation> animations = packet.getAnimations();
         this.animations = ImmutableMap.copyOf(animations);
     }
 
     public void handleUpdateInteractions(ClientUpdateInteractionPacket packet) {
-        LOGGER.info("Sync Interactions From Server");
+        LOGGER.debug("Sync Interactions From Server");
         Map<ResourceLocation, Interaction> interactions = packet.getInteractions();
         this.interactions = ImmutableMap.copyOf(interactions);
     }
@@ -189,7 +198,7 @@ public class AnimationManager implements PreparableReloadListener {
 
             LOGGER.debug("Load External Animation: {}", name);
             list.add(Pair.of(
-                    new ResourceLocation("external", name),
+                    ResourceLocation.fromNamespaceAndPath("external", name),
                     animations
             ));
         } catch (RuntimeException | IOException e) {
@@ -198,18 +207,23 @@ public class AnimationManager implements PreparableReloadListener {
     }
 
     public void sync(ServerPlayer player) {
-        LOGGER.info("Send Animations to Client");
-        SimpleAnimator.getNetwork().sendToPlayer(new ClientUpdateAnimationPacket(this.animations), player);
-        SimpleAnimator.getNetwork().sendToPlayer(new ClientUpdateInteractionPacket(this.interactions), player);
+        LOGGER.info("Send Animations[{}] and Interactions[{}] to Client", this.animations.size(), this.interactions.size());
+        if (this.cacheAnimations.ready())
+            SimpleAnimator.getNetwork().sendToPlayer(this.cacheAnimations, player);
+
+        if (this.cacheInteractions.ready())
+            SimpleAnimator.getNetwork().sendToPlayer(this.cacheInteractions, player);
     }
 
     public void sync(PlayerList list) {
-        ClientUpdateAnimationPacket animationPacket = new ClientUpdateAnimationPacket(this.animations);
-        ClientUpdateInteractionPacket interactionPacket = new ClientUpdateInteractionPacket(this.interactions);
+        LOGGER.info("Send Animations[{}] and Interactions[{}] to All Players", this.animations.size(), this.interactions.size());
 
         for (ServerPlayer player : list.getPlayers()) {
-            SimpleAnimator.getNetwork().sendToPlayer(animationPacket, player);
-            SimpleAnimator.getNetwork().sendToPlayer(interactionPacket, player);
+            if (this.cacheAnimations.ready())
+                SimpleAnimator.getNetwork().sendToPlayer(this.cacheAnimations, player);
+
+            if (this.cacheInteractions.ready())
+                SimpleAnimator.getNetwork().sendToPlayer(this.cacheInteractions, player);
         }
     }
 

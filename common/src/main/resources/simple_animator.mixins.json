@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "net.quepierts.simpleanimator.core.mixin",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_21",
   "mixins": [
     "PlayerMixin"
   ],
@@ -13,13 +13,13 @@
     "EntityRenderDispatcherMixin",
     "GameRendererMixin",
     "ItemInHandRendererMixin",
-    "accessor.KeyMappingAccessor",
     "LivingEntityRendererMixin",
     "LocalPlayerMixin",
     "MinecraftClientMixin",
     "PlayerRendererMixin",
     "accessor.CameraAccessor",
     "accessor.CubeDefinitionAccessor",
+    "accessor.KeyMappingAccessor",
     "model.CubeListBuilderMixin",
     "model.PlayerModelMixin"
   ],

@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.quepierts.simpleanimator.api.IAnimateHandler;
 import net.quepierts.simpleanimator.core.PlayerUtils;
+import net.quepierts.simpleanimator.core.SimpleAnimator;
 
 @Environment(EnvType.CLIENT)
 public class ClientPlayerNavigator {
@@ -52,7 +53,15 @@ public class ClientPlayerNavigator {
 
                 Vec3 subtract = targetPosition.subtract(player.position()).multiply(1, 0, 1);
                 Vec3 direction = subtract.normalize().scale(player.getSpeed());
-                player.addDeltaMovement(subtract.lengthSqr() < direction.lengthSqr() ? subtract : direction);
+                Vec3 vec3 = subtract.lengthSqr() < direction.lengthSqr() ? subtract : direction;
+
+                if (!PlayerUtils.canPositionStand(player.position().add(vec3), player.level(), 0.5f)) {
+                    player.setDeltaMovement(0, 0, 0);
+                    this.stop();
+                    return;
+                }
+
+                player.addDeltaMovement(vec3);
 
                 player.lookAt(EntityAnchorArgument.Anchor.EYES, lastTargetPosition.add(0, target.getEyeHeight(), 0));
                 break;
@@ -60,6 +69,7 @@ public class ClientPlayerNavigator {
                 if (timer ++ > 20) {
                     timer = 0;
 
+                    SimpleAnimator.LOGGER.info("Finish");
                     if (this.post != null)
                         post.run();
 

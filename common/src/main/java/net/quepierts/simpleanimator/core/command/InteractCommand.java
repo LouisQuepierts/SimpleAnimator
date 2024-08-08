@@ -29,6 +29,7 @@ public class InteractCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("interact")
+                .requires(stack -> stack.hasPermission(2))
                 .then(Commands.literal("accept").then(Commands.argument("requester", EntityArgument.player()).suggests(SUGGEST_PLAYER).executes(InteractCommand::accept)))
                 .then(Commands.literal("invite").then(Commands.argument("target", EntityArgument.player()).suggests(SUGGEST_PLAYER).then(Commands.argument("interaction", ResourceLocationArgument.id()).suggests(SUGGEST_INTERACTION).executes(InteractCommand::invite)))));
     }

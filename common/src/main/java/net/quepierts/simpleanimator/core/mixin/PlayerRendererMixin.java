@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
 import net.quepierts.simpleanimator.api.IAnimateHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -37,9 +38,10 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
     public void forceSetupAnimWithRotation(PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, AbstractClientPlayer pPlayer, ModelPart pRendererArm, ModelPart pRendererArmwear, CallbackInfo ci) {
         if (((IAnimateHandler) pPlayer).simpleanimator$getAnimator().isRunning()) {
             pRendererArm.xRot = 0.0F;
-            pRendererArm.render(pPoseStack, pBuffer.getBuffer(RenderType.entitySolid(pPlayer.getSkinTextureLocation())), pCombinedLight, OverlayTexture.NO_OVERLAY);
+            ResourceLocation resourceLocation = pPlayer.getSkin().texture();
+            pRendererArm.render(pPoseStack, pBuffer.getBuffer(RenderType.entitySolid(resourceLocation)), pCombinedLight, OverlayTexture.NO_OVERLAY);
             pRendererArmwear.xRot = 0.0F;
-            pRendererArmwear.render(pPoseStack, pBuffer.getBuffer(RenderType.entityTranslucent(pPlayer.getSkinTextureLocation())), pCombinedLight, OverlayTexture.NO_OVERLAY);
+            pRendererArmwear.render(pPoseStack, pBuffer.getBuffer(RenderType.entityTranslucent(resourceLocation)), pCombinedLight, OverlayTexture.NO_OVERLAY);
             ci.cancel();
         }
     }

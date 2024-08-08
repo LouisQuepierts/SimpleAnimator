@@ -2,9 +2,9 @@ package net.quepierts.simpleanimator.core.mixin;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
-import net.minecraft.client.Timer;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.quepierts.simpleanimator.api.IAnimateHandler;
@@ -27,7 +27,7 @@ public abstract class MinecraftClientMixin {
     @Shadow @Nullable
     public LocalPlayer player;
 
-    @Shadow @Final private Timer timer;
+    @Shadow @Final private DeltaTracker.Timer timer;
 
     @Shadow public abstract boolean isPaused();
 
@@ -51,13 +51,13 @@ public abstract class MinecraftClientMixin {
             method = "runTick",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/Timer;advanceTime(J)I",
+                    target = "Lnet/minecraft/client/DeltaTracker$Timer;advanceTime(JZ)I",
                     shift = At.Shift.AFTER
             )
     )
     public void tickAnimators(boolean bl, CallbackInfo ci) {
         if (!this.isPaused() && level != null) {
-            SimpleAnimator.getClient().getAnimatorManager().tick(timer.tickDelta / 20);
+            SimpleAnimator.getClient().getAnimatorManager().tick(timer.getGameTimeDeltaTicks() / 20);
         }
     }
 }

@@ -12,6 +12,7 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,8 +25,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class CameraMixin {
 
     @Shadow protected abstract void setPosition(double pX, double pY, double pZ);
+    @Shadow protected abstract void setRotation(float f, float g);
+    @Shadow public abstract Quaternionf rotation();
 
     @Shadow private Vec3 position;
+    @Shadow private float xRot;
+    @Shadow private float yRot;
 
     @Inject(
             method = "setup",
@@ -54,6 +59,20 @@ public abstract class CameraMixin {
                     this.position.x + d0,
                     this.position.y + position.y,
                     this.position.z + d2);
+
+            if (animator.getAnimation().isOverride() && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
+                Vector3f rotation = animator.getCameraRotation();
+
+                float yRot = (player.yHeadRot - player.yBodyRot);
+                float xRot = player.getXRot();
+
+                this.setRotation(
+                        this.yRot + (rotation.y * Mth.RAD_TO_DEG) - yRot,
+                        this.xRot + (rotation.x * Mth.RAD_TO_DEG) - xRot
+                );
+
+                this.rotation().rotateZ(rotation.z);
+            }
         }
     }
 }

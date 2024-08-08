@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -29,8 +30,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Player.class)
-public abstract class PlayerMixin extends Entity implements IAnimateHandler, IInteractHandler {
-    public PlayerMixin(EntityType<?> entityType, Level level) {
+public abstract class PlayerMixin extends LivingEntity implements IAnimateHandler, IInteractHandler {
+
+    protected PlayerMixin(EntityType<? extends LivingEntity> entityType, Level level) {
         super(entityType, level);
     }
 
@@ -92,6 +94,19 @@ public abstract class PlayerMixin extends Entity implements IAnimateHandler, IIn
             return false;
         }
 
+        Vec3 position = PlayerUtils.getRelativePositionWorldSpace((Player) (Object) this, 1, 0);
+        if (!PlayerUtils.isPositionSave(position, level())) {
+            return false;
+        }
+
+        float rotY = PlayerUtils.getLookAtRotY((Player) (Object) this, target.position());
+        this.setYRot(rotY);
+        this.yRotO = this.getYRot();
+        this.yHeadRot = rotY;
+        this.yHeadRotO = rotY;
+        this.yBodyRot = rotY;
+        this.yBodyRotO = rotY;
+
         this.simpleanimator$cancel(false);
 
         this.simpleanimator$request.set(target.getUUID(), interaction);
@@ -116,6 +131,7 @@ public abstract class PlayerMixin extends Entity implements IAnimateHandler, IIn
 
         if (!PlayerUtils.inSameDimension((Player) (Object) this, requester))
             return false;
+
 
         this.simpleanimator$cancel(false);
         this.simpleanimator$stopAnimate(false);

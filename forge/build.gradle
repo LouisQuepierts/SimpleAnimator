@@ -1,12 +1,8 @@
 plugins {
-    id "com.github.johnrengelman.shadow" version "7.1.2"
+    id "com.github.johnrengelman.shadow"
+    id "org.spongepowered.mixin" version "0.7-SNAPSHOT"
 }
-loom {
-    forge {
-        mixinConfig "simple_animator-common.mixins.json"
-        mixinConfig "simple_animator.mixins.json"
-    }
-}
+
 architectury {
     platformSetupLoomIde()
     forge()
@@ -27,14 +23,17 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 }
 
-String forge_version_range = "${rootProject.forge_version_range}"
-
 processResources {
-    inputs.property "version", project.version
+    inputs.property 'version', project.version
+    inputs.property "minecraft_version_range", rootProject.minecraft_version_range
+    inputs.property "forge_loader_version_range", rootProject.forge_loader_version_range
 
-    filesMatching("META-INF/mods.toml") {
-        expand "version": project.version
-        expand "forge_version_range": forge_version_range
+    filesMatching('META-INF/mods.toml') {
+        expand([
+                version: project.version,
+                minecraft_version_range: rootProject.minecraft_version_range,
+                forge_loader_version_range: rootProject.forge_loader_version_range
+        ])
     }
 }
 
@@ -48,7 +47,6 @@ shadowJar {
 remapJar {
     inputFile.set(shadowJar.archiveFile)
     dependsOn shadowJar
-    archiveAppendix.set("forge-${rootProject.minecraft_version}")
 }
 
 jar {

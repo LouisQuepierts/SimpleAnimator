@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.CapeLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.PlayerSkin;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.animation.ModelBone;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
@@ -51,7 +52,8 @@ public abstract class CapeLayerMixin extends RenderLayer<AbstractClientPlayer, P
         pPoseStack.mulPose(Axis.ZP.rotation(cache.rotation().y));
         pPoseStack.mulPose(Axis.YP.rotationDegrees((float) (180.0f - Math.toDegrees(cache.rotation().z))));
 
-        VertexConsumer vertexconsumer = pBuffer.getBuffer(RenderType.entitySolid(pLivingEntity.getCloakTextureLocation()));
+        PlayerSkin playerSkin = pLivingEntity.getSkin();
+        VertexConsumer vertexconsumer = pBuffer.getBuffer(RenderType.entitySolid(playerSkin.capeTexture()));
         this.getParentModel().renderCloak(pPoseStack, vertexconsumer, pPackedLight, OverlayTexture.NO_OVERLAY);
         pPoseStack.popPose();
 

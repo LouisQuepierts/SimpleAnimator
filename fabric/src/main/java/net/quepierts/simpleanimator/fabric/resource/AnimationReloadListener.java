@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public class AnimationReloadListener implements IdentifiableResourceReloadListener {
-    private final ResourceLocation ID = new ResourceLocation(SimpleAnimator.MOD_ID, "animation");
+    private final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleAnimator.MOD_ID, "animation");
     @Override
     public ResourceLocation getFabricId() {
         return ID;

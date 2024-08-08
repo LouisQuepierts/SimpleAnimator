@@ -8,7 +8,7 @@ import net.quepierts.simpleanimator.core.network.packet.AnimatorDataPacket;
 import java.util.UUID;
 
 public class Animator {
-    public static final ResourceLocation EMPTY = new ResourceLocation("empty");
+    public static final ResourceLocation EMPTY = ResourceLocation.fromNamespaceAndPath(SimpleAnimator.MOD_ID, "empty");
     protected final UUID uuid;
 
     protected ResourceLocation animationLocation;

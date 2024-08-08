@@ -2,14 +2,18 @@ package net.quepierts.simpleanimator.core.network.packet.batch;
 
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.quepierts.simpleanimator.api.animation.Interaction;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.network.ISync;
+import net.quepierts.simpleanimator.core.network.NetworkPackets;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
 public class ClientUpdateInteractionPacket implements ISync {
+    public static final Type<ClientUpdateInteractionPacket> TYPE = NetworkPackets.createType(ClientUpdateInteractionPacket.class);
     private final Map<ResourceLocation, Interaction> interactions;
 
     public ClientUpdateInteractionPacket(Map<ResourceLocation, Interaction> interactions) {
@@ -36,5 +40,11 @@ public class ClientUpdateInteractionPacket implements ISync {
 
     public Map<ResourceLocation, Interaction> getInteractions() {
         return interactions;
+    }
+
+    @Override
+    @NotNull
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

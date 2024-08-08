@@ -1,5 +1,5 @@
 modLoader="javafml" 
-loaderVersion="[46,)"
+loaderVersion="${forge_loader_version_range}"
 license="MIT"
 
 [[mods]]
@@ -12,21 +12,15 @@ description='''
 
 '''
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
-[[dependencies.simple_animator]] #optional
-    # the modid of the dependency
-    modId="forge" #mandatory
-    # Does this dependency have to exist - if not, ordering below must be specified
-    mandatory=true #mandatory
-    # The version range of the dependency
-    versionRange="[46,)" #mandatory
-    # An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
+[[dependencies.simple_animator]]
+    modId="forge"
+    mandatory=true
+    versionRange="${forge_loader_version_range}"
     ordering="NONE"
-    # Side this dependency is applied on - BOTH, CLIENT or SERVER
     side="BOTH"
-    # Here's another dependency
 [[dependencies.simple_animator]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.20,1.20.2)"
+    versionRange="${minecraft_version_range}"
     ordering="NONE"
     side="BOTH"

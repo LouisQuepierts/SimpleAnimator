@@ -5,16 +5,19 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.quepierts.simpleanimator.api.IInteractHandler;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
+import net.quepierts.simpleanimator.core.network.NetworkPackets;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
 public class InteractInvitePacket extends UserPacket {
+    public static final Type<InteractInvitePacket> TYPE = NetworkPackets.createType(InteractInvitePacket.class);
     private final UUID target;
     private final ResourceLocation interaction;
 
@@ -68,5 +71,11 @@ public class InteractInvitePacket extends UserPacket {
 
     public ResourceLocation getInteraction() {
         return interaction;
+    }
+
+    @Override
+    @NotNull
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

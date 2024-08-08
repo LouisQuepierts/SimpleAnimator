@@ -11,16 +11,12 @@ import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.animation.RequestHolder;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 import net.quepierts.simpleanimator.core.client.ClientPlayerNavigator;
-import net.quepierts.simpleanimator.core.network.packet.AnimatorStopPacket;
-import net.quepierts.simpleanimator.core.network.packet.InteractCancelPacket;
 import net.quepierts.simpleanimator.core.proxy.ClientProxy;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.UUID;
 
 @Environment(EnvType.CLIENT)
 @Mixin(LocalPlayer.class)
@@ -41,27 +37,29 @@ public class LocalPlayerMixin {
         boolean hasInput = input.forwardImpulse != 0 || input.leftImpulse != 0 || input.jumping || input.shiftKeyDown;
 
         if (hasInput) {
-            final UUID uuid = ((LocalPlayer) (Object) this).getUUID();
             final ClientPlayerNavigator navigator = client.getNavigator();
             if (navigator.isNavigating()) {
                 navigator.stop();
             }
 
-            IInteractHandler handler = (IInteractHandler) Minecraft.getInstance().player;
-            RequestHolder request = handler.simpleanimator$getRequest();
+            LocalPlayer player = Minecraft.getInstance().player;
+            RequestHolder request = ((IInteractHandler) player).simpleanimator$getRequest();
 
             if (request.hasRequest()) {
-                handler.simpleanimator$cancel(true);
-                SimpleAnimator.getNetwork().update(new InteractCancelPacket(uuid));
+                ((IInteractHandler) player).simpleanimator$cancel(true);
+
+                input.forwardImpulse = 0.0f;
+                input.leftImpulse = 0.0f;
+                input.jumping = false;
+                input.shiftKeyDown = false;
                 return;
             }
 
-            ClientAnimator animator = (ClientAnimator) ((IAnimateHandler) Minecraft.getInstance().player).simpleanimator$getAnimator();
+            ClientAnimator animator = (ClientAnimator) ((IAnimateHandler) player).simpleanimator$getAnimator();
 
             if (animator.isRunning() && !animator.getAnimation().isMovable()) {
                 if (animator.getAnimation().isAbortable() && animator.canStop()) {
-                    animator.stop();
-                    SimpleAnimator.getNetwork().update(new AnimatorStopPacket(uuid));
+                    ((IAnimateHandler) player).simpleanimator$stopAnimate(true);
                 }
 
                 input.forwardImpulse = 0.0f;

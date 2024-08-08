@@ -1,6 +1,9 @@
 package net.quepierts.simpleanimator.core.network;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.network.packet.*;
 import net.quepierts.simpleanimator.core.network.packet.batch.ClientUpdateAnimationPacket;
@@ -8,6 +11,7 @@ import net.quepierts.simpleanimator.core.network.packet.batch.ClientUpdateAnimat
 import net.quepierts.simpleanimator.core.network.packet.batch.ClientUpdateInteractionPacket;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -22,6 +26,11 @@ public enum NetworkPackets {
     CLIENT_UPDATE_INTERACTION(ClientUpdateInteractionPacket.class, ClientUpdateInteractionPacket::new, NetworkDirection.PLAY_TO_CLIENT),
     CLIENT_UPDATE_ANIMATOR(ClientUpdateAnimatorPacket.class, ClientUpdateAnimatorPacket::new, NetworkDirection.PLAY_TO_CLIENT);
     private final PacketType<?> packet;
+
+    public static <T extends IPacket> CustomPacketPayload.Type<T> createType(Class<T> type) {
+        ResourceLocation location = ResourceLocation.fromNamespaceAndPath(SimpleAnimator.MOD_ID, type.getSimpleName().toLowerCase(Locale.ROOT));
+        return new CustomPacketPayload.Type<>(location);
+    }
 
     public PacketType<?> getPacket() {
         return packet;
@@ -43,9 +52,8 @@ public enum NetworkPackets {
     }
 
     public static class PacketType<T extends IPacket> {
-        public final Class<T> type;
-        public final BiConsumer<T, FriendlyByteBuf> encoder;
-        public final Function<FriendlyByteBuf, T> decoder;
+        public final CustomPacketPayload.Type<T> type;
+        public final StreamCodec<FriendlyByteBuf, T> codec;
         public final BiConsumer<T, NetworkContext> handler;
         public final NetworkDirection direction;
 
@@ -54,12 +62,15 @@ public enum NetworkPackets {
                 @NotNull Function<FriendlyByteBuf, T> decoder,
                 @NotNull BiConsumer<T, NetworkContext> handler,
                 @NotNull NetworkDirection direction) {
-            this.type = type;
-            this.decoder = decoder;
+            this.type = createType(type);
             this.direction = direction;
-
-            this.encoder = T::write;
             this.handler = handler;
+
+            this.codec = StreamCodec.of(
+                    // Why neoforge will write two times?????
+                    (byteBuf, packet) -> packet.write(byteBuf),
+                    decoder::apply
+            );
         }
     }
 }

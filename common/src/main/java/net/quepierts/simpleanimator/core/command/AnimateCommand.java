@@ -7,10 +7,8 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.GameType;
 import net.quepierts.simpleanimator.api.animation.Animator;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
@@ -24,7 +22,8 @@ public class AnimateCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
-                Commands.literal("animate").executes(AnimateCommand::query)
+                Commands.literal("animate")
+                        .requires(stack -> stack.hasPermission(2))
                         .then(Commands.literal("play").then(Commands.argument("animation", ResourceLocationArgument.id()).suggests(SUGGEST_ANIMATION).executes(AnimateCommand::play)))
                         .then(Commands.literal("stop").executes(AnimateCommand::stop))
         );
@@ -38,15 +37,6 @@ public class AnimateCommand {
             if (animator.isRunning()) {
                 SimpleAnimator.getNetwork().sendToAllPlayers(new AnimatorStopPacket(uuid), player);
             }
-        }
-        return 1;
-    }
-
-    private static int query(CommandContext<CommandSourceStack> context) {
-        Entity entity = context.getSource().getEntity();
-        if (entity instanceof ServerPlayer) {
-            Animator animator =  SimpleAnimator.getProxy().getAnimatorManager().createIfAbsent(entity.getUUID());
-            context.getSource().sendSystemMessage(Component.translatable("animator.commands.message.query", animator.getAnimationLocation()));
         }
         return 1;
     }

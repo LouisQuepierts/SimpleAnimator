@@ -3,16 +3,19 @@ package net.quepierts.simpleanimator.core.network.packet;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.quepierts.simpleanimator.api.animation.Animator;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.animation.AnimationState;
+import net.quepierts.simpleanimator.core.network.NetworkPackets;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
 public class AnimatorDataPacket extends UserPacket {
+    public static final Type<AnimatorDataPacket> TYPE = NetworkPackets.createType(AnimatorDataPacket.class);
     public final ResourceLocation animationLocation;
     public final AnimationState curState;
     public final AnimationState nextState;
@@ -82,5 +85,11 @@ public class AnimatorDataPacket extends UserPacket {
     @Environment(EnvType.CLIENT)
     public void sync() {
         SimpleAnimator.getProxy().getAnimatorManager().createIfAbsent(owner).sync(this);
+    }
+
+    @Override
+    @NotNull
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

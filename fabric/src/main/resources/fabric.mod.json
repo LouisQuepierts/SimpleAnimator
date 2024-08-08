@@ -18,11 +18,10 @@
     ]
   },
   "mixins": [
-    "simple_animator.mixins.json",
-    "simple_animator-common.mixins.json"
+    "simple_animator.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.14.21",
-    "minecraft": ">=1.20"
+    "fabricloader": ">=${fabric_loader_version}",
+    "minecraft": ">=${minecraft_version}"
   }
 }

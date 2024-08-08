@@ -1,5 +1,5 @@
 plugins {
-    id "com.github.johnrengelman.shadow" version "7.1.2"
+    id "com.github.johnrengelman.shadow"
 }
 
 architectury {
@@ -24,10 +24,16 @@ dependencies {
 }
 
 processResources {
-    inputs.property "version", project.version
+    inputs.property 'version', project.version
+    inputs.property "minecraft_version", rootProject.minecraft_version
+    inputs.property "fabric_loader_version", rootProject.fabric_loader_version
 
     filesMatching("fabric.mod.json") {
-        expand "version": project.version
+        expand([
+                version: project.version,
+                minecraft_version: rootProject.minecraft_version,
+                fabric_loader_version: rootProject.fabric_loader_version
+        ])
     }
 }
 
@@ -40,7 +46,6 @@ remapJar {
     injectAccessWidener = true
     inputFile.set(shadowJar.archiveFile)
     dependsOn shadowJar
-    archiveAppendix.set("fabric-${rootProject.minecraft_version}")
 }
 
 jar {
