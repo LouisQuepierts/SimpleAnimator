@@ -16,9 +16,7 @@ import java.util.Map;
 public class ClientUpdateAnimationPacket implements ISync {
     public static final Type<ClientUpdateAnimationPacket> TYPE = NetworkPackets.createType(ClientUpdateAnimationPacket.class);
     private final Map<ResourceLocation, Animation> animations;
-    protected ClientUpdateAnimationPacket() {
-        this.animations = Collections.emptyMap();
-    }
+
     public ClientUpdateAnimationPacket(Map<ResourceLocation, Animation> map) {
         this.animations = ImmutableMap.copyOf(map);
     }
