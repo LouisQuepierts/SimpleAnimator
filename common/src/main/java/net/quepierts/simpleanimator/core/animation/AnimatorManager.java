@@ -2,7 +2,6 @@ package net.quepierts.simpleanimator.core.animation;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.server.level.ServerPlayer;
-import net.quepierts.simpleanimator.api.animation.Animator;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.network.packet.AnimatorDataPacket;
 import net.quepierts.simpleanimator.core.network.packet.batch.ClientUpdateAnimatorPacket;

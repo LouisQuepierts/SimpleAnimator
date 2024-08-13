@@ -16,7 +16,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.quepierts.simpleanimator.api.IInteractHandler;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
-import net.quepierts.simpleanimator.core.animation.RequestHolder;
 import net.quepierts.simpleanimator.core.network.packet.InteractAcceptPacket;
 import net.quepierts.simpleanimator.core.network.packet.InteractInvitePacket;
 
@@ -50,7 +49,7 @@ public class InteractCommand {
 
         ResourceLocation location = ResourceLocationArgument.getId(context, "interaction");
 
-        if (!((IInteractHandler) player).simpleanimator$invite(target, location, false)) {
+        if (!((IInteractHandler) player).simpleanimator$inviteInteract(target, location, false)) {
             return 0;
         }
 
@@ -68,19 +67,13 @@ public class InteractCommand {
         ServerPlayer player = source.getPlayer();
         ServerPlayer requester = EntityArgument.getPlayer(context, "requester");
 
-        if (player == requester) {
-            source.sendFailure(Component.translatable("animator.commands.failed.same_player"));
+        InteractAcceptPacket packet = new InteractAcceptPacket(requester.getUUID(), player.getUUID(), false);
+        if (!((IInteractHandler) player).simpleanimator$acceptInteract(requester, false, false)) {
+            SimpleAnimator.getNetwork().sendToPlayer(packet, player);
             return 0;
         }
 
-        RequestHolder request = ((IInteractHandler) requester).simpleanimator$getRequest();
-
-        if (!request.hasRequest() || !request.getTarget().equals(player.getUUID())) {
-            source.sendFailure(Component.translatable("animator.commands.failed.nonexistent_request"));
-            return 0;
-        }
-
-        SimpleAnimator.getNetwork().sendToAllPlayers(new InteractAcceptPacket(requester.getUUID(), player.getUUID(), false), player);
+        SimpleAnimator.getNetwork().sendToAllPlayers(packet, player);
         return 1;
     }
 

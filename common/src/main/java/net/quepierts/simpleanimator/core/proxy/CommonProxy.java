@@ -1,7 +1,7 @@
 package net.quepierts.simpleanimator.core.proxy;
 
-import net.quepierts.simpleanimator.api.animation.Animator;
 import net.quepierts.simpleanimator.core.animation.AnimationManager;
+import net.quepierts.simpleanimator.core.animation.Animator;
 import net.quepierts.simpleanimator.core.animation.AnimatorManager;
 import net.quepierts.simpleanimator.core.animation.InteractionManager;
 import net.quepierts.simpleanimator.core.config.CommonConfiguration;

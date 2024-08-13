@@ -10,7 +10,6 @@ import net.quepierts.simpleanimator.core.network.ISync;
 import net.quepierts.simpleanimator.core.network.NetworkPackets;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
 import java.util.Map;
 
 public class ClientUpdateAnimationPacket implements ISync {

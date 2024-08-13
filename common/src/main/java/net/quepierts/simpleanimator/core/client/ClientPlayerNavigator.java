@@ -8,6 +8,7 @@ import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.quepierts.simpleanimator.api.IAnimateHandler;
+import net.quepierts.simpleanimator.api.event.client.ClientNavigatorEvent;
 import net.quepierts.simpleanimator.core.PlayerUtils;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 
@@ -36,7 +37,7 @@ public class ClientPlayerNavigator {
                 }
 
                 if (timer ++ > 1000) {
-                    this.stop();
+                    this.stop(false);
                     return;
                 }
 
@@ -57,7 +58,7 @@ public class ClientPlayerNavigator {
 
                 if (!PlayerUtils.canPositionStand(player.position().add(vec3), player.level(), 0.5f)) {
                     player.setDeltaMovement(0, 0, 0);
-                    this.stop();
+                    this.stop(false);
                     return;
                 }
 
@@ -73,7 +74,7 @@ public class ClientPlayerNavigator {
                     if (this.post != null)
                         post.run();
 
-                    this.stop();
+                    this.stop(true);
                 }
                 break;
         }
@@ -82,6 +83,9 @@ public class ClientPlayerNavigator {
 
     public void navigateTo(Player player, float forward, float left, Runnable post) {
         LocalPlayer local = Minecraft.getInstance().player;
+
+        if (SimpleAnimator.EVENT_BUS.post(new ClientNavigatorEvent.Start(player, forward, left)).isCanceled())
+            return;
 
         if (PlayerUtils.isRiding(local) && !player.onGround() && !PlayerUtils.inSameDimension(local, player))
             return;
@@ -99,7 +103,8 @@ public class ClientPlayerNavigator {
         return navigating;
     }
 
-    public void stop() {
+    public void stop(boolean finished) {
+        SimpleAnimator.EVENT_BUS.post(new ClientNavigatorEvent.End(finished));
         this.navigating = false;
         this.target = null;
         this.targetPosition = null;

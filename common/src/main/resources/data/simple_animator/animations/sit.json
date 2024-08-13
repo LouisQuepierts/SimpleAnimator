@@ -1,6 +1,10 @@
 {
 	"format_version": "1.8.0",
-	"override": false,
+	"unlock": [
+		"HEAD",
+		"LEFT_ARM",
+		"RIGHT_ARM"
+	],
 	"animations": {
 		"main": {
 			"loop": true,

@@ -9,7 +9,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.quepierts.simpleanimator.api.IInteractHandler;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.network.NetworkPackets;
 import org.jetbrains.annotations.NotNull;
@@ -46,8 +45,7 @@ public class InteractInvitePacket extends UserPacket {
         if (target == null)
             return;
 
-        IInteractHandler handler = (IInteractHandler) sender;
-        if (handler.simpleanimator$invite(target, this.interaction, false)) {
+        if (SimpleAnimator.getProxy().getInteractionManager().invite(sender, target, this.interaction)) {
             SimpleAnimator.getNetwork().sendToAllPlayers(this, sender);
         }
     }
@@ -62,7 +60,7 @@ public class InteractInvitePacket extends UserPacket {
         if (requester == null || target == null)
             return;
 
-        ((IInteractHandler) requester).simpleanimator$invite(target, this.interaction, false);
+        SimpleAnimator.getProxy().getInteractionManager().invite(requester, target, this.interaction);
     }
 
     public UUID getTarget() {

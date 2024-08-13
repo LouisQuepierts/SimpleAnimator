@@ -10,7 +10,7 @@ import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameType;
-import net.quepierts.simpleanimator.api.animation.Animator;
+import net.quepierts.simpleanimator.api.IAnimateHandler;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.network.packet.AnimatorPlayPacket;
 import net.quepierts.simpleanimator.core.network.packet.AnimatorStopPacket;
@@ -32,9 +32,8 @@ public class AnimateCommand {
     private static int stop(CommandContext<CommandSourceStack> context) {
         if (context.getSource().getEntity() instanceof ServerPlayer player) {
             UUID uuid = player.getUUID();
-            Animator animator = SimpleAnimator.getProxy().getAnimatorManager().createIfAbsent(uuid);
 
-            if (animator.isRunning()) {
+            if (((IAnimateHandler) player).simpleanimator$stopAnimate(false)) {
                 SimpleAnimator.getNetwork().sendToAllPlayers(new AnimatorStopPacket(uuid), player);
             }
         }
@@ -48,8 +47,9 @@ public class AnimateCommand {
 
             ResourceLocation location = ResourceLocationArgument.getId(context, "animation");
             UUID uuid = player.getUUID();
-            SimpleAnimator.getProxy().getAnimatorManager().createIfAbsent(uuid).play(location);
-            SimpleAnimator.getNetwork().sendToAllPlayers(new AnimatorPlayPacket(uuid, location), player);
+            if (((IAnimateHandler) player).simpleanimator$playAnimate(location, false)) {
+                SimpleAnimator.getNetwork().sendToAllPlayers(new AnimatorPlayPacket(uuid, location), player);
+            }
             return 1;
         }
         return 0;

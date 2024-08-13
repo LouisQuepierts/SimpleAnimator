@@ -1,4 +1,4 @@
-package net.quepierts.simpleanimator.core.mixin;
+package net.quepierts.simpleanimator.core.mixin.client;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -7,8 +7,8 @@ import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
 import net.quepierts.simpleanimator.api.IAnimateHandler;
 import net.quepierts.simpleanimator.api.IInteractHandler;
+import net.quepierts.simpleanimator.api.animation.RequestHolder;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
-import net.quepierts.simpleanimator.core.animation.RequestHolder;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 import net.quepierts.simpleanimator.core.client.ClientPlayerNavigator;
 import net.quepierts.simpleanimator.core.proxy.ClientProxy;
@@ -39,14 +39,14 @@ public class LocalPlayerMixin {
         if (hasInput) {
             final ClientPlayerNavigator navigator = client.getNavigator();
             if (navigator.isNavigating()) {
-                navigator.stop();
+                navigator.stop(false);
             }
 
             LocalPlayer player = Minecraft.getInstance().player;
             RequestHolder request = ((IInteractHandler) player).simpleanimator$getRequest();
 
             if (request.hasRequest()) {
-                ((IInteractHandler) player).simpleanimator$cancel(true);
+                ((IInteractHandler) player).simpleanimator$cancelInteract(true);
 
                 input.forwardImpulse = 0.0f;
                 input.leftImpulse = 0.0f;

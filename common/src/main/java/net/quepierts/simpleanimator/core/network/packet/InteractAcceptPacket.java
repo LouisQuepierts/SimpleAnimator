@@ -6,7 +6,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.quepierts.simpleanimator.api.IInteractHandler;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.network.NetworkPackets;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +42,7 @@ public class InteractAcceptPacket extends UserPacket {
         if (requester == null)
             return;
 
-        if (forced || ((IInteractHandler) sender).simpleanimator$accept(requester, false, false)) {
+        if (forced || SimpleAnimator.getProxy().getInteractionManager().accept(requester, sender, false)) {
             SimpleAnimator.getNetwork().sendToPlayers(this, sender);
         }
     }
@@ -56,7 +55,7 @@ public class InteractAcceptPacket extends UserPacket {
         Player target = level.getPlayerByUUID(this.target);
         if (requester == null || target == null)
             return;
-        ((IInteractHandler) target).simpleanimator$accept(requester, false, forced);
+        SimpleAnimator.getProxy().getInteractionManager().accept(requester, target, forced);
     }
 
     @Override

@@ -8,13 +8,13 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.quepierts.simpleanimator.api.animation.Animator;
+import net.quepierts.simpleanimator.api.animation.AnimationState;
+import net.quepierts.simpleanimator.api.animation.ModelBone;
+import net.quepierts.simpleanimator.api.event.client.ClientAnimatorStateEvent;
 import net.quepierts.simpleanimator.core.PlayerUtils;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
-import net.quepierts.simpleanimator.core.animation.AnimationState;
-import net.quepierts.simpleanimator.core.animation.ModelBone;
+import net.quepierts.simpleanimator.core.animation.Animator;
 import net.quepierts.simpleanimator.core.client.state.IAnimationState;
 import net.quepierts.simpleanimator.core.network.packet.AnimatorDataPacket;
 import org.joml.Matrix4f;
@@ -88,6 +88,8 @@ public class ClientAnimator extends Animator {
                         this.curState = this.nextState;
                         IAnimationState.Impl.get(this.curState).enter(this);
                         this.procState = ProcessState.PROCESS;
+                        SimpleAnimator.EVENT_BUS.post(new ClientAnimatorStateEvent.Enter(this.uuid, this.animationLocation, this.animation, this.curState, this.nextState));
+                        this.update(new AnimatorDataPacket(this, false));
                     }
                     break;
                 case PROCESS:
@@ -98,10 +100,14 @@ public class ClientAnimator extends Animator {
                         if (impl.shouldEnd(this)) {
                             this.nextState = impl.getNext(this);
                             impl.exit(this);
+                            SimpleAnimator.EVENT_BUS.post(new ClientAnimatorStateEvent.Exit(this.uuid, this.animationLocation, this.animation, this.curState, this.nextState));
                             this.procState = ProcessState.TRANSFER;
                             this.shouldUpdate = false;
-                            this.update(new AnimatorDataPacket(this, false));
+                        } else {
+                            SimpleAnimator.EVENT_BUS.post(new ClientAnimatorStateEvent.Loop(this.uuid, this.animationLocation, this.animation, this.curState, this.nextState));
                         }
+
+                        this.update(new AnimatorDataPacket(this, false));
                     }
                     break;
             }
@@ -148,7 +154,7 @@ public class ClientAnimator extends Animator {
     private void process(ModelBone bone, ModelPart part) {
         Cache cache = this.cache.get(bone);
         Vector3f position = cache.position;
-        PartPose pose = animation.isOverride() ? part.getInitialPose() : part.storePose();
+        PartPose pose = animation.isOverride(bone) ? part.getInitialPose() : part.storePose();
 
         part.x = pose.x + position.x;
         part.y = pose.y - position.y;
@@ -193,28 +199,35 @@ public class ClientAnimator extends Animator {
         }
     }
 
-    public Vector3f getCameraPosition(Entity entity) {
+    public Vector3f getCameraPosition() {
         Cache head = cache.get(ModelBone.HEAD);
         Cache root = cache.get(ModelBone.ROOT);
 
-        Vector3f position;
-        if (root.rotation().x == 0 && root.rotation().y == 0 && root.rotation().z == 0) {
-            position = new Vector3f(head.position());
-        } else {
-            float eyeHeight = entity.getEyeHeight() * 16.0f;
-            position = new Matrix4f()
-                    .rotateXYZ(root.rotation()).invert()
-                    .transformPosition(new Vector3f(head.position()).add(0, eyeHeight, 0))
-                    .sub(0, eyeHeight, 0);
+        Matrix4f mat = new Matrix4f()
+                .translate(root.position())
+                .rotateXYZ(root.rotation())
+                .translate(0, 12, 0);
+
+        if (this.isRunning() && this.animation.isModifiedRig()) {
+            Cache body = cache.get(ModelBone.BODY);
+            mat.translate(body.position())
+                    .rotateXYZ(body.rotation());
         }
 
-        position.add(root.position())
-                .div(-16.0f, 16.0f, -16.0f);
-
-        return position;
+        return mat
+                .translate(0, 12, 0)
+                .translate(head.position())
+                .invert()
+                .transformPosition(new Vector3f(0, 0, 0))
+                .add(0, 24, 0)
+                .div(16.0f, -16.0f, 16.0f);
     }
 
     public Vector3f getCameraRotation() {
+        if (this.isRunning() && this.animation.isModifiedRig()){
+            return new Vector3f(cache.get(ModelBone.HEAD).rotation()).add(cache.get(ModelBone.BODY).rotation()).add(cache.get(ModelBone.ROOT).rotation());
+        }
+
         return new Vector3f(cache.get(ModelBone.HEAD).rotation()).add(cache.get(ModelBone.ROOT).rotation());
     }
 

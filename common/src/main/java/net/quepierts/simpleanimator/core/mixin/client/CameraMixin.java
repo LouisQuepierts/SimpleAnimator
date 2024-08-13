@@ -1,4 +1,4 @@
-package net.quepierts.simpleanimator.core.mixin;
+package net.quepierts.simpleanimator.core.mixin.client;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -10,6 +10,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import net.quepierts.simpleanimator.api.animation.ModelBone;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 import org.joml.Quaternionf;
@@ -44,7 +45,7 @@ public abstract class CameraMixin {
         ClientAnimator animator = SimpleAnimator.getClient().getClientAnimatorManager().getLocalAnimator();
 
         if (animator.isRunning() && animator.isProcessed()) {
-            Vector3f position = animator.getCameraPosition(pEntity);
+            Vector3f position = animator.getCameraPosition();
 
             LocalPlayer player = Minecraft.getInstance().player;
             Vec2 vec2 = new Vec2(0, player.yBodyRot);
@@ -60,7 +61,7 @@ public abstract class CameraMixin {
                     this.position.y + position.y,
                     this.position.z + d2);
 
-            if (animator.getAnimation().isOverride() && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
+            if (animator.getAnimation().isOverride(ModelBone.HEAD) && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
                 Vector3f rotation = animator.getCameraRotation();
 
                 float yRot = (player.yHeadRot - player.yBodyRot);

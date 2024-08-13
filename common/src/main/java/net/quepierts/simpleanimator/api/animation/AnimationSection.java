@@ -8,8 +8,6 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringUtil;
-import net.quepierts.simpleanimator.core.animation.LerpMode;
-import net.quepierts.simpleanimator.core.animation.ModelBone;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 import net.quepierts.simpleanimator.core.client.state.IAnimationState;
 import org.joml.Vector3f;
@@ -242,7 +240,7 @@ public class AnimationSection {
         Vector3f position = ZERO;
         Vector3f rotation = ZERO;
 
-        if (animator.getAnimation().isOverride()) {
+        if (animator.getAnimation().isOverride(bone)) {
             final PartPose initialPose = part.getInitialPose();
             final PartPose pose = PartPose.offsetAndRotation(
                     part.x - initialPose.x,

@@ -6,7 +6,6 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.network.*;
 import org.apache.commons.compress.utils.Sets;
 
@@ -15,7 +14,6 @@ import java.util.HashSet;
 public class FabricNetworkImpl implements INetwork {
     @Override
     public void sendToPlayer(IPacket packet, ServerPlayer player) {
-        SimpleAnimator.LOGGER.info(packet.getClass().getSimpleName());
         ServerPlayNetworking.send(player, packet);
     }
 

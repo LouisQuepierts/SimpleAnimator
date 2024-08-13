@@ -2,7 +2,7 @@ package net.quepierts.simpleanimator.core.client.state;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.quepierts.simpleanimator.core.animation.AnimationState;
+import net.quepierts.simpleanimator.api.animation.AnimationState;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;

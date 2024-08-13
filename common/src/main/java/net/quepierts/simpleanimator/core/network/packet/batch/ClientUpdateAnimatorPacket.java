@@ -2,9 +2,9 @@ package net.quepierts.simpleanimator.core.network.packet.batch;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.quepierts.simpleanimator.api.animation.Animator;
+import net.quepierts.simpleanimator.api.animation.AnimationState;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
-import net.quepierts.simpleanimator.core.animation.AnimationState;
+import net.quepierts.simpleanimator.core.animation.Animator;
 import net.quepierts.simpleanimator.core.network.ISync;
 import net.quepierts.simpleanimator.core.network.NetworkPackets;
 import net.quepierts.simpleanimator.core.network.packet.AnimatorDataPacket;

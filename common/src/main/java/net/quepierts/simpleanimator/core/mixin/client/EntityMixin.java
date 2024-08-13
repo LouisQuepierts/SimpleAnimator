@@ -1,4 +1,4 @@
-package net.quepierts.simpleanimator.core.mixin;
+package net.quepierts.simpleanimator.core.mixin.client;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -8,7 +8,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.quepierts.simpleanimator.api.IAnimateHandler;
-import net.quepierts.simpleanimator.api.animation.Animator;
+import net.quepierts.simpleanimator.core.animation.Animator;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
@@ -56,7 +56,7 @@ public abstract class EntityMixin {
 
         Animator animator = ((IAnimateHandler) this).simpleanimator$getAnimator();
 
-        if (animator.isRunning() && animator.getAnimation().isOverride())
+        if (animator.isRunning() && animator.getAnimation().isOverrideHead())
             ci.cancel();
     }
 
@@ -70,8 +70,8 @@ public abstract class EntityMixin {
             return;
 
         ClientAnimator animator = (ClientAnimator) ((IAnimateHandler) this).simpleanimator$getAnimator();
-        if (animator.isRunning() && animator.isProcessed() && !animator.getAnimation().isOverride()) {
-            Vector3f position = animator.getCameraPosition((Entity) (Object) this);
+        if (animator.isRunning() && animator.isProcessed() && !animator.getAnimation().isOverrideHead()) {
+            Vector3f position = animator.getCameraPosition();
             double d0 = Mth.lerp(f, this.xo, this.getX()) + position.x;
             double d1 = Mth.lerp(f, this.yo, this.getY()) + (double)this.getEyeHeight() + position.y;
             double d2 = Mth.lerp(f, this.zo, this.getZ()) + position.z;
@@ -90,7 +90,7 @@ public abstract class EntityMixin {
             return;
 
         ClientAnimator animator = (ClientAnimator) ((IAnimateHandler) this).simpleanimator$getAnimator();
-        if (animator.isRunning() && animator.isProcessed() && !animator.getAnimation().isOverride()) {
+        if (animator.isRunning() && animator.isProcessed() && !animator.getAnimation().isOverrideHead()) {
             Vector3f rotation = animator.getCameraRotation();
             cir.setReturnValue(this.calculateViewVector(
                     this.getViewXRot(f) + rotation.x * Mth.RAD_TO_DEG,

@@ -1,12 +1,13 @@
 package net.quepierts.simpleanimator.api.animation;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.network.FriendlyByteBuf;
+import net.quepierts.simpleanimator.core.JsonUtils;
 import net.quepierts.simpleanimator.core.PlayerUtils;
-import net.quepierts.simpleanimator.core.animation.AnimationState;
-import net.quepierts.simpleanimator.core.animation.ModelBone;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 
 import java.io.Reader;
@@ -24,11 +25,13 @@ public class Animation {
     private final AnimationSection loop;
     private final AnimationSection exit;
 
-    private final boolean override;
     private final boolean movable;
     private final boolean abortable;
 
+    private final boolean useVanillaRig;
+
     private final Type type;
+    private final byte unlockFlag;
 
     public static Animation[] fromStream(Reader reader) {
         JsonObject object = JsonParser.parseReader(reader).getAsJsonObject();
@@ -41,9 +44,12 @@ public class Animation {
         if (!object.has(KEY_LOOP))
             throw new RuntimeException("Cannot accept animation without \"main\"!");
 
-        boolean override = getBoolean(json, "override", true);
-        boolean movable = getBoolean(json, "movable", false);
-        boolean abortable = getBoolean(json, "abortable", true);
+        boolean movable = JsonUtils.getBoolean("movable", json, false);
+        boolean abortable = JsonUtils.getBoolean("abortable", json, true);
+
+        boolean rig = JsonUtils.getBoolean("useVanillaRig", json, true);
+
+        byte unlock = getUnlocks(json);
 
         Animation[] animations;
         if (isInteractiveAnimation(object)) {
@@ -63,19 +69,19 @@ public class Animation {
 
             animations[0] = new Animation(
                     request, waiting, cancel,
-                    override, movable, true, Type.INVITE
+                    movable, true, rig, unlock, Type.INVITE
             );
             animations[1] = new Animation(
                     AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_ENTER), Type.REQUESTER),
                     AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_LOOP), Type.REQUESTER),
                     AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_EXIT), Type.REQUESTER),
-                    override, movable, false, Type.REQUESTER
+                    movable, false, rig, unlock, Type.REQUESTER
             );
             animations[2] = new Animation(
                     AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_ENTER), Type.RECEIVER),
                     AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_LOOP), Type.RECEIVER),
                     AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_EXIT), Type.RECEIVER),
-                    override, movable, false, Type.RECEIVER
+                    movable, false, rig, unlock, Type.RECEIVER
 
             );
         } else {
@@ -84,7 +90,7 @@ public class Animation {
                             AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_ENTER)),
                             AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_LOOP)),
                             AnimationSection.fromJsonObject(object.getAsJsonObject(KEY_EXIT)),
-                            override, movable, abortable, Type.SIMPLE
+                            movable, abortable, rig, unlock, Type.SIMPLE
                     )
             };
         }
@@ -92,20 +98,43 @@ public class Animation {
         return animations;
     }
 
+    private static byte getUnlocks(JsonObject object) {
+        JsonElement element = object.get("unlock");
+
+        if (element == null || !element.isJsonArray())
+            return (byte) 0xFF;
+
+        byte flag = (byte) 0xFF;
+        JsonArray array = element.getAsJsonArray();
+        for (JsonElement ele : array) {
+            if (!ele.isJsonPrimitive())
+                continue;
+
+            ModelBone bone = ModelBone.fromString(ele.getAsString());
+
+            if (bone == null)
+                continue;
+
+            flag = bone.remove(flag);
+        }
+        return flag;
+    }
+
     private Animation(
             AnimationSection enter,
             AnimationSection loop,
             AnimationSection exit,
-            boolean override,
             boolean movable,
             boolean abortable,
-            Type type) {
+            boolean useVanillaRig,
+            byte lock, Type type) {
         this.enter = enter;
         this.loop = loop;
         this.exit = exit;
-        this.override = override;
         this.movable = movable;
         this.abortable = abortable;
+        this.useVanillaRig = useVanillaRig;
+        this.unlockFlag = lock;
         this.type = type;
     }
 
@@ -156,8 +185,16 @@ public class Animation {
         animation.update(bone, part, animator, getFadeIn(animator));
     }
 
-    public boolean isOverride() {
-        return override;
+    public boolean isOverride(ModelBone bone) {
+        return bone.in(this.unlockFlag);
+    }
+
+    public boolean isOverrideHead() {
+        return ModelBone.HEAD.in(this.unlockFlag);
+    }
+
+    public boolean isOverrideHands() {
+        return ModelBone.LEFT_ARM.in(this.unlockFlag) || ModelBone.RIGHT_ARM.in(this.unlockFlag);
     }
 
     public boolean isMovable() {
@@ -173,9 +210,10 @@ public class Animation {
     }
 
     public static void toNetwork(FriendlyByteBuf byteBuf, Animation group) {
-        byteBuf.writeBoolean(group.override);
         byteBuf.writeBoolean(group.movable);
         byteBuf.writeBoolean(group.abortable);
+        byteBuf.writeBoolean(group.useVanillaRig);
+        byteBuf.writeByte(group.unlockFlag);
         byteBuf.writeEnum(group.type);
         byteBuf.writeOptional(Optional.ofNullable(group.enter), AnimationSection::toNetwork);
         byteBuf.writeOptional(Optional.ofNullable(group.loop), AnimationSection::toNetwork);
@@ -183,9 +221,10 @@ public class Animation {
     }
 
     public static Animation fromNetwork(FriendlyByteBuf byteBuf) {
-        final boolean override = byteBuf.readBoolean();
         final boolean movable = byteBuf.readBoolean();
         final boolean abortable = byteBuf.readBoolean();
+        final boolean rigModified = byteBuf.readBoolean();
+        final byte unlock = byteBuf.readByte();
         final Type type = byteBuf.readEnum(Type.class);
         final Optional<AnimationSection> enter = byteBuf.readOptional(AnimationSection::fromNetwork);
         final Optional<AnimationSection> loop = byteBuf.readOptional(AnimationSection::fromNetwork);
@@ -194,11 +233,19 @@ public class Animation {
                 enter.orElse(null),
                 loop.orElse(null),
                 exit.orElse(null),
-                override, movable, abortable, type);
+                movable, abortable, rigModified, unlock, type);
+    }
+
+    public boolean isModifiedRig() {
+        return !useVanillaRig;
+    }
+
+    public boolean isVanillaRig() {
+        return useVanillaRig;
     }
 
     public enum Type {
-        SIMPLE("simple/", ""),
+        SIMPLE("", ""),
         INVITE("invite/", "requester"),
         REQUESTER("requester/", "requester"),
         RECEIVER("receiver/", "receiver");

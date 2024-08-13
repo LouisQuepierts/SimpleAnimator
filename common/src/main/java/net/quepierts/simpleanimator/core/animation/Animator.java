@@ -1,8 +1,10 @@
-package net.quepierts.simpleanimator.api.animation;
+package net.quepierts.simpleanimator.core.animation;
 
 import net.minecraft.resources.ResourceLocation;
+import net.quepierts.simpleanimator.api.animation.Animation;
+import net.quepierts.simpleanimator.api.animation.AnimationState;
+import net.quepierts.simpleanimator.api.event.common.AnimatorEvent;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
-import net.quepierts.simpleanimator.core.animation.AnimationState;
 import net.quepierts.simpleanimator.core.network.packet.AnimatorDataPacket;
 
 import java.util.UUID;
@@ -46,19 +48,22 @@ public class Animator {
         this.animationLocation = location;
         this.animation = SimpleAnimator.getProxy().getAnimationManager().getAnimation(location);
         this.timer = 0;
+
+        SimpleAnimator.EVENT_BUS.post(new AnimatorEvent.Play(this.uuid, this.animationLocation, this.animation));
         return true;
     }
 
     public boolean stop() {
-        if (this.animation == null || !this.animation.isAbortable())
+        if (this.animation == null)
             return false;
+
+        SimpleAnimator.EVENT_BUS.post(new AnimatorEvent.Stop(this.uuid, this.animationLocation, this.animation));
+        /*RequestHolder holder = SimpleAnimator.getProxy().getInteractionManager().get(this.uuid);
+        if (holder != null) {
+            holder.reset();
+        }*/
         this.timer = 0;
         return true;
-    }
-
-    public void terminate() {
-        this.animationLocation = EMPTY;
-        this.timer = 0;
     }
 
     public UUID getUuid() {
@@ -90,6 +95,8 @@ public class Animator {
     }
 
     public void reset(boolean update) {
+        SimpleAnimator.EVENT_BUS.post(new AnimatorEvent.Reset(this.uuid, this.animationLocation, this.animation));
+
         this.timer = 0;
         this.animation = null;
         this.animationLocation = EMPTY;

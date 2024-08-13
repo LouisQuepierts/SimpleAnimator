@@ -1,4 +1,4 @@
-package net.quepierts.simpleanimator.core.mixin;
+package net.quepierts.simpleanimator.core.mixin.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -14,8 +14,8 @@ import net.minecraft.client.renderer.entity.layers.CapeLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.PlayerSkin;
+import net.quepierts.simpleanimator.api.animation.ModelBone;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
-import net.quepierts.simpleanimator.core.animation.ModelBone;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

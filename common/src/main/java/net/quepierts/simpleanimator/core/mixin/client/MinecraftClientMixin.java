@@ -1,4 +1,4 @@
-package net.quepierts.simpleanimator.core.mixin;
+package net.quepierts.simpleanimator.core.mixin.client;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -8,8 +8,8 @@ import net.minecraft.client.Options;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.quepierts.simpleanimator.api.IAnimateHandler;
-import net.quepierts.simpleanimator.api.animation.Animator;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
+import net.quepierts.simpleanimator.core.animation.Animator;
 import net.quepierts.simpleanimator.core.mixin.accessor.KeyMappingAccessor;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -41,7 +41,7 @@ public abstract class MinecraftClientMixin {
     public void cancelKeyInput(CallbackInfo ci) {
         Animator animator = ((IAnimateHandler) this.player).simpleanimator$getAnimator();
 
-        if (animator.isRunning() && animator.getAnimation().isOverride()) {
+        if (animator.isRunning() && animator.getAnimation().isOverrideHands()) {
             ((KeyMappingAccessor) this.options.keyUse).simpleanimator$release();
             ((KeyMappingAccessor) this.options.keyAttack).simpleanimator$release();
         }
