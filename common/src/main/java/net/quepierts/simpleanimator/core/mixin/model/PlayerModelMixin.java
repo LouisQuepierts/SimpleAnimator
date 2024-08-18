@@ -24,10 +24,6 @@ import java.util.Set;
 @Environment(EnvType.CLIENT)
 @Mixin(PlayerModel.class)
 public class PlayerModelMixin<T extends LivingEntity> extends HumanoidModel<T>  {
-    @Unique private static final Set<Direction> UPPER_MODEL = Set.of(Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
-    @Unique private static final Set<Direction> LOWER_MODEL = Set.of(Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
-
-
     @Shadow @Final public ModelPart leftPants;
 
     @Shadow @Final public ModelPart rightPants;

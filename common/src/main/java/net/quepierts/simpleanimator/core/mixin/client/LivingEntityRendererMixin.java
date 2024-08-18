@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Environment(EnvType.CLIENT)
 @Mixin(LivingEntityRenderer.class)
 public class LivingEntityRendererMixin<T extends LivingEntity, M extends EntityModel<T>> {
-    @Unique @Nullable ClientAnimator animator;
+    @Unique @Nullable ClientAnimator simpleAnimator$animator;
     @Inject(
             method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
             at = @At(
@@ -35,9 +35,9 @@ public class LivingEntityRendererMixin<T extends LivingEntity, M extends EntityM
         if (PlayerUtils.isRiding(pEntity))
             return;
 
-        animator = SimpleAnimator.getClient().getClientAnimatorManager().getAnimator(pEntity.getUUID());
-        if (animator != null && animator.isRunning() && animator.isProcessed()) {
-            ClientAnimator.Cache root = animator.getCache(ModelBone.ROOT);
+        simpleAnimator$animator = SimpleAnimator.getClient().getClientAnimatorManager().getAnimator(pEntity.getUUID());
+        if (simpleAnimator$animator != null && simpleAnimator$animator.isRunning() && simpleAnimator$animator.isProcessed()) {
+            ClientAnimator.Cache root = simpleAnimator$animator.getCache(ModelBone.ROOT);
             pPoseStack.mulPose(new Quaternionf().rotationXYZ(
                     root.rotation().x,
                     root.rotation().y,
