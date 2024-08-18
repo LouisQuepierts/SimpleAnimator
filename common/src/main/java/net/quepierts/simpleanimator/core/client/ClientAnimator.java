@@ -18,6 +18,7 @@ import net.quepierts.simpleanimator.core.animation.Animator;
 import net.quepierts.simpleanimator.core.client.state.IAnimationState;
 import net.quepierts.simpleanimator.core.network.packet.AnimatorDataPacket;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.Collections;
@@ -136,15 +137,25 @@ public class ClientAnimator extends Animator {
 
     public void process(PlayerModel<AbstractClientPlayer> model, Player player) {
         this.update(model, player);
-        process(ModelBone.HEAD, model.head);
-        process(ModelBone.BODY, model.body);
-        process(ModelBone.LEFT_ARM, model.leftArm);
-        process(ModelBone.RIGHT_ARM, model.rightArm);
+
+        if (this.animation.isModifiedRig()) {
+            Matrix4f parent = processModifiedBody(model.body);
+
+            processModified(ModelBone.HEAD, model.head, parent);
+            processModified(ModelBone.LEFT_ARM, model.leftArm, parent);
+            processModified(ModelBone.RIGHT_ARM, model.rightArm, parent);
+        } else {
+            process(ModelBone.HEAD, model.head);
+            process(ModelBone.BODY, model.body);
+            process(ModelBone.LEFT_ARM, model.leftArm);
+            process(ModelBone.RIGHT_ARM, model.rightArm);
+        }
 
         if (!PlayerUtils.isRiding(player)) {
             process(ModelBone.LEFT_LEG, model.leftLeg);
             process(ModelBone.RIGHT_LEG, model.rightLeg);
         }
+
     }
 
     public Cache getCache(ModelBone bone) {
@@ -165,6 +176,47 @@ public class ClientAnimator extends Animator {
         part.xRot = pose.xRot + rotation.x;
         part.yRot = pose.yRot + rotation.y;
         part.zRot = pose.zRot + rotation.z;
+    }
+
+    private Matrix4f processModifiedBody(ModelPart body) {
+        Cache cache = this.cache.get(ModelBone.BODY);
+        Vector3f rotation = cache.rotation;
+
+        PartPose pose = animation.isOverride(ModelBone.BODY) ? body.getInitialPose() : body.storePose();
+
+        Quaternionf rot = new Quaternionf().rotateXYZ(rotation.x, rotation.y, rotation.z);
+        Vector3f position = rot.transform(new Vector3f(cache.position).sub(0, 12, 0)).add(0, 12, 0);
+
+        body.x = pose.x + position.x;
+        body.y = pose.y - position.y;
+        body.z = pose.z + position.z;
+
+        body.xRot = pose.xRot + rotation.x;
+        body.yRot = pose.yRot + rotation.y;
+        body.zRot = pose.zRot + rotation.z;
+
+        return new Matrix4f()
+                .translate(body.x, body.y, body.z)
+                .rotateXYZ(body.xRot, body.yRot, body.zRot);
+    }
+
+    private void processModified(ModelBone bone, ModelPart part, Matrix4f parent) {
+        Cache cache = this.cache.get(bone);
+        Vector3f position;
+        PartPose pose = animation.isOverride(bone) ? part.getInitialPose() : part.storePose();
+
+        position = parent.transformPosition(new Vector3f(pose.x, pose.y, pose.z).add(cache.position.x, -cache.position.y, cache.position.z));
+
+        part.x = position.x;
+        part.y = position.y;
+        part.z = position.z;
+
+        Vector3f rotation = parent.transformDirection(cache.rotation, new Vector3f());
+
+        part.xRot = pose.xRot + rotation.x;
+        part.yRot = pose.yRot + rotation.y;
+        part.zRot = pose.zRot + rotation.z;
+
     }
 
     public boolean canStop() {

@@ -7,6 +7,9 @@
     "PlayerMixin"
   ],
   "client": [
+    "accessor.CameraAccessor",
+    "accessor.CubeDefinitionAccessor",
+    "accessor.KeyMappingAccessor",
     "client.CameraMixin",
     "client.CapeLayerMixin",
     "client.EntityMixin",
@@ -17,11 +20,7 @@
     "client.LocalPlayerMixin",
     "client.MinecraftClientMixin",
     "client.PlayerRendererMixin",
-    "accessor.CameraAccessor",
-    "accessor.CubeDefinitionAccessor",
-    "accessor.KeyMappingAccessor",
     "model.CubeListBuilderMixin",
-    "model.ModelPartMixin",
     "model.PlayerModelMixin"
   ],
   "injectors": {

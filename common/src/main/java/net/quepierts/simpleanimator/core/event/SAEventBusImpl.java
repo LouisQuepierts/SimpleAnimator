@@ -5,6 +5,7 @@ import net.quepierts.simpleanimator.api.event.ISAEventBus;
 import net.quepierts.simpleanimator.api.event.SAEvent;
 import org.slf4j.Logger;
 
+import java.lang.reflect.Modifier;
 import java.util.IdentityHashMap;
 import java.util.function.Consumer;
 
@@ -18,6 +19,9 @@ public class SAEventBusImpl implements ISAEventBus {
 
     @Override
     public <T extends SAEvent> void addListener(Class<T> clazz, Consumer<T> listener) {
+        if (Modifier.isAbstract(clazz.getModifiers())) {
+            throw new IllegalArgumentException(clazz + " is an abstract class, you cannot add listener for it!");
+        }
         this.map.computeIfAbsent(clazz, ListenerList::new).addListener(listener);
     }
 
