@@ -8,6 +8,7 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringUtil;
+import net.quepierts.simpleanimator.core.PlayerUtils;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 import net.quepierts.simpleanimator.core.client.state.IAnimationState;
 import org.joml.Vector3f;
@@ -293,6 +294,7 @@ public class AnimationSection {
                         time
                 ));
             }
+
         } else {
             final float time = Mth.clamp(animator.getTimer(), 0.0f, length);
             interpolate(posFrames, cache.position(), time);

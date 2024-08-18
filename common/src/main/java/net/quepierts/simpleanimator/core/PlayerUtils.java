@@ -8,10 +8,19 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 
 public class PlayerUtils {
     public static boolean isRiding(Entity player) {
         return player != null && player.getVehicle() != null;
+    }
+
+    public static Vector3f normalizeRadians(Vector3f vector3f) {
+        return vector3f.set(
+                normalizeRadians(vector3f.x),
+                normalizeRadians(vector3f.y),
+                normalizeRadians(vector3f.z)
+        );
     }
 
     public static double normalizeAngle(float angle) {
@@ -27,6 +36,17 @@ public class PlayerUtils {
 
     public static float normalizeRadians(double rad) {
         return (float) Math.toRadians(normalizeAngle((float) Math.toDegrees(rad)));
+    }
+
+    public static float normalizeRadians(float rad) {
+        // 将角度规范化到 -PI 到 PI 范围内
+        rad = rad % ((float)Math.PI * 2);
+        if (rad > Math.PI) {
+            rad -= (float)Math.PI * 2;
+        } else if (rad < -Math.PI) {
+            rad += (float)Math.PI * 2;
+        }
+        return rad;
     }
 
     public static float getLookAtRotY(Player player, Vec3 vec3) {
