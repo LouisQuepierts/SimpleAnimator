@@ -15,6 +15,14 @@ public abstract class AnimateStopEvent extends SAEvent {
         this.animationID = animationID;
     }
 
+    public ResourceLocation getAnimationID() {
+        return animationID;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
     public static class Pre extends AnimatePlayEvent implements ICancelable {
         public Pre(Player player, ResourceLocation animationID) {
             super(player, animationID);

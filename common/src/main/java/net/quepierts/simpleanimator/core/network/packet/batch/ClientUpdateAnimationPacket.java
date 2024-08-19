@@ -27,7 +27,7 @@ public class ClientUpdateAnimationPacket implements ISync {
     @Override
     public void write(FriendlyByteBuf byteBuf) {
         byteBuf.writeMap(animations, FriendlyByteBuf::writeResourceLocation, Animation::toNetwork);
-        SimpleAnimator.LOGGER.debug("Buffer Capacity: {} / {}", byteBuf.writerIndex(), byteBuf.capacity());
+        SimpleAnimator.LOGGER.info("Buffer Capacity: {} / {}", byteBuf.writerIndex(), byteBuf.capacity());
     }
 
     @Override

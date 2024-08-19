@@ -1,22 +1,26 @@
 package net.quepierts.simpleanimator.api.animation;
 
 import com.google.common.collect.ImmutableMap;
+import org.jetbrains.annotations.Nullable;
 
 public enum ModelBone {
-    ROOT((byte) 0),
-    BODY((byte) 1),
-    HEAD((byte) 2),
-    LEFT_ARM((byte) 4),
-    RIGHT_ARM((byte) 8),
-    LEFT_LEG((byte) 16),
-    RIGHT_LEG((byte) 32);
+    ROOT((byte) 0, null),
+    BODY((byte) 1, null),
+    HEAD((byte) 2, IKBone.HEAD),
+    LEFT_ARM((byte) 4, IKBone.LEFT_ARM),
+    RIGHT_ARM((byte) 8, IKBone.RIGHT_ARM),
+    LEFT_LEG((byte) 16, null),
+    RIGHT_LEG((byte) 32, null);
 
     private final byte mask;
+    @Nullable
+    private final IKBone ik;
 
     private static final ImmutableMap<String, ModelBone> REF;
 
-    ModelBone(byte mask) {
+    ModelBone(byte mask, IKBone ik) {
         this.mask = mask;
+        this.ik = ik;
     }
 
     public static ModelBone fromString(String string) {
@@ -33,6 +37,10 @@ public enum ModelBone {
 
     public boolean in(int flag) {
         return (flag & this.mask) != 0;
+    }
+
+    public IKBone getIk() {
+        return ik;
     }
 
     static {

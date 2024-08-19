@@ -4,14 +4,17 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.network.FriendlyByteBuf;
+import net.quepierts.simpleanimator.api.animation.keyframe.VariableHolder;
 import net.quepierts.simpleanimator.core.JsonUtils;
 import net.quepierts.simpleanimator.core.PlayerUtils;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 
 import java.io.Reader;
 import java.util.Optional;
+import java.util.Set;
 
 public class Animation {
     private static final String KEY_REQUEST = "invite";
@@ -185,6 +188,11 @@ public class Animation {
         animation.update(bone, part, animator, getFadeIn(animator));
     }
 
+    public void update(String variable, VariableHolder holder, ClientAnimator animator) {
+        final AnimationSection animation = animator.isTransferring() ? this.get(animator.getNextState()) : this.get(animator.getCurState());
+        animation.update(variable, holder, animator, getFadeIn(animator));
+    }
+
     public boolean isOverride(ModelBone bone) {
         return bone.in(this.unlockFlag);
     }
@@ -207,6 +215,21 @@ public class Animation {
 
     public Type getType() {
         return type;
+    }
+
+    public Set<String> getVariables() {
+        Set<String> set = new ObjectOpenHashSet<>();
+
+        if (this.enter != null)
+            this.enter.getVariables(set);
+
+        if (this.loop != null)
+            this.loop.getVariables(set);
+
+        if (this.exit != null)
+            this.exit.getVariables(set);
+
+        return set;
     }
 
     public static void toNetwork(FriendlyByteBuf byteBuf, Animation group) {

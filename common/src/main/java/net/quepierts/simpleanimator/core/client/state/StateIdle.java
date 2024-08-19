@@ -2,7 +2,6 @@ package net.quepierts.simpleanimator.core.client.state;
 
 import net.quepierts.simpleanimator.api.animation.AnimationState;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
-import org.joml.Vector3f;
 
 public class StateIdle implements IAnimationState {
     @Override
@@ -16,12 +15,12 @@ public class StateIdle implements IAnimationState {
     }
 
     @Override
-    public Vector3f getDest(Vector3f keyframe, Vector3f vector3f) {
-        return vector3f;
+    public <T> T getDest(T keyframe, T curr) {
+        return curr;
     }
 
     @Override
-    public Vector3f getSrc(Vector3f cache, Vector3f vector3f) {
-        return vector3f;
+    public <T> T getSrc(T cache, T curr) {
+        return curr;
     }
 }

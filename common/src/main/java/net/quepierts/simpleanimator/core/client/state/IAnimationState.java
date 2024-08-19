@@ -5,7 +5,6 @@ import net.fabricmc.api.Environment;
 import net.quepierts.simpleanimator.api.animation.AnimationState;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
 
 @Environment(EnvType.CLIENT)
 public interface IAnimationState {
@@ -21,11 +20,11 @@ public interface IAnimationState {
 
     AnimationState getNext(ClientAnimator animator);
 
-    default Vector3f getDest(Vector3f keyframe, Vector3f vector3f) {
+    default <T> T getDest(T keyframe, T curr) {
         return keyframe;
     }
 
-    default Vector3f getSrc(Vector3f cache, Vector3f vector3f) {
+    default <T> T getSrc(T cache, T curr) {
         return cache;
     }
 
