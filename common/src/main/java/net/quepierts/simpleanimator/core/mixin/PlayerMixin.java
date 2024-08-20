@@ -134,7 +134,7 @@ public abstract class PlayerMixin extends LivingEntity implements IAnimateHandle
         if (!this.simpleanimator$request.hasRequest())
             return;
 
-        SimpleAnimator.EVENT_BUS.post(new CancelInteractEvent((Player) (Object) this, this.simpleanimator$request.getInteraction()));
+        SimpleAnimator.EVENT_BUS.post(new CancelInteractEvent((Player) (Object) this, this.simpleanimator$request.getTarget(), this.simpleanimator$request.getInteraction()));
         this.simpleanimator$animator.stop();
         this.simpleanimator$request.reset();
 

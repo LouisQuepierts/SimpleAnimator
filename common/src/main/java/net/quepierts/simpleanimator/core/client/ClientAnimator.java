@@ -76,7 +76,7 @@ public class ClientAnimator extends Animator {
     public void sync(AnimatorDataPacket packet) {
         ResourceLocation location = this.animationLocation;
         super.sync(packet);
-        if (!location.equals(this.animationLocation)) {
+        if (!location.equals(this.animationLocation) || this.animation != null) {
             Set<String> animationVariables = this.animation.getVariables();
             for (String variable : animationVariables) {
                 this.variables.computeIfAbsent(variable, VariableHolder::get);
