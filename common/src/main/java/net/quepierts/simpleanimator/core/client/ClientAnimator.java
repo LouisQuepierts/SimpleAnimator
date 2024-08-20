@@ -42,9 +42,6 @@ public class ClientAnimator extends Animator {
     private boolean processed = false;
     private boolean shouldUpdate = false;
 
-    @Nullable
-    private Player player;
-
     public ClientAnimator(UUID uuid) {
         super(uuid);
 
@@ -86,7 +83,7 @@ public class ClientAnimator extends Animator {
 
     @Override
     public boolean play(ResourceLocation location) {
-        this.player = Minecraft.getInstance().level.getPlayerByUUID(uuid);
+        @Nullable Player player = Minecraft.getInstance().level.getPlayerByUUID(uuid);
 
         if (this.animation == null)
             processed = false;
@@ -452,8 +449,6 @@ public class ClientAnimator extends Animator {
             this.rotation.set(0);
         }
     }
-
-    public record Cache_(Vector3f position, Quaternionf rotation) {}
 
     static {
         BUILTIN_VARIABLES = ObjectOpenHashSet.of(
