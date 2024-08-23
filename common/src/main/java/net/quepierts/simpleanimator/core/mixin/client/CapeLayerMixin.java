@@ -21,8 +21,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Environment(EnvType.CLIENT)
 @Mixin(CapeLayer.class)
 public abstract class CapeLayerMixin extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
-    @Unique
-    private static final ResourceLocation sa$TEXTURE = ResourceLocation.withDefaultNamespace("textures/block/stone.png");
     public CapeLayerMixin(RenderLayerParent<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> pRenderer) {
         super(pRenderer);
     }
