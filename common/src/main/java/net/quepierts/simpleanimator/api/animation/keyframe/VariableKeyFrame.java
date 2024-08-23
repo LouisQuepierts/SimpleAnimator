@@ -5,7 +5,7 @@ import net.quepierts.simpleanimator.api.animation.LerpMode;
 
 public class VariableKeyFrame extends KeyFrame<VariableHolder> {
     public VariableKeyFrame(FriendlyByteBuf byteBuf) {
-        super(byteBuf, VariableHolder::new);
+        super(byteBuf, VariableHolder::decode);
     }
 
     public VariableKeyFrame(float time, VariableHolder obj, LerpMode mode) {
@@ -20,11 +20,11 @@ public class VariableKeyFrame extends KeyFrame<VariableHolder> {
 
     @Override
     public VariableHolder linerInterpolation(VariableHolder p1, VariableHolder p2, float delta) {
-        return Interpolation.linerInterpolation(p1, p2, delta);
+        return p1.linerInterpolation(p1, p2, delta);
     }
 
     @Override
     public VariableHolder catmullRomInterpolation(VariableHolder p0, VariableHolder p1, VariableHolder p2, VariableHolder p3, float delta) {
-        return Interpolation.catmullRomInterpolation(p0, p1, p2, p3, delta);
+        return p0.catmullRomInterpolation(p0, p1, p2, p3, delta);
     }
 }

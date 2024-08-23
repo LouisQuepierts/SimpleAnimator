@@ -85,14 +85,17 @@ public class ClientAnimator extends Animator {
     public boolean play(ResourceLocation location) {
         @Nullable Player player = Minecraft.getInstance().level.getPlayerByUUID(uuid);
 
-        if (this.animation == null)
+        if (this.animation == null) {
             processed = false;
+        }
 
-        if (!super.play(location))
+        if (!super.play(location)) {
             return false;
+        }
 
-        if (this.animation == null)
+        if (this.animation == null) {
             return false;
+        }
 
         for (String variable : this.animation.getVariables()) {
             this.variables.computeIfAbsent(variable, VariableHolder::get);
@@ -263,7 +266,7 @@ public class ClientAnimator extends Animator {
     }
 
     public VariableHolder getVariable(String variable) {
-        return this.variables.getOrDefault(variable, VariableHolder.ZERO);
+        return this.variables.getOrDefault(variable, VariableHolder.Immutable.INSTANCE);
     }
 
     public float getIKWeight(IKBone bone) {

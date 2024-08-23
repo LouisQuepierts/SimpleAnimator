@@ -7,6 +7,8 @@ import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
 import net.quepierts.simpleanimator.api.IAnimateHandler;
 import net.quepierts.simpleanimator.api.IInteractHandler;
+import net.quepierts.simpleanimator.api.animation.Animation;
+import net.quepierts.simpleanimator.api.animation.ModelBone;
 import net.quepierts.simpleanimator.api.animation.RequestHolder;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
@@ -57,15 +59,27 @@ public class LocalPlayerMixin {
 
             ClientAnimator animator = (ClientAnimator) ((IAnimateHandler) player).simpleanimator$getAnimator();
 
-            if (animator.isRunning() && !animator.getAnimation().isMovable()) {
-                if (animator.getAnimation().isAbortable() && animator.canStop()) {
-                    ((IAnimateHandler) player).simpleanimator$stopAnimate(true);
+            if (animator.isRunning()) {
+                Animation animation = animator.getAnimation();
+                if (!animation.isMovable()) {
+                    input.forwardImpulse = 0.0f;
+                    input.leftImpulse = 0.0f;
+                    input.jumping = false;
+                    input.shiftKeyDown = false;
+                } else {
+                    if (animation.isOverride(ModelBone.BODY)) {
+                        input.shiftKeyDown = false;
+                    }
+
+                    if (animation.isOverride(ModelBone.LEFT_LEG) || animation.isOverride(ModelBone.RIGHT_LEG)) {
+                        input.forwardImpulse = 0.0f;
+                        input.leftImpulse = 0.0f;
+                    }
                 }
 
-                input.forwardImpulse = 0.0f;
-                input.leftImpulse = 0.0f;
-                input.jumping = false;
-                input.shiftKeyDown = false;
+                if (animation.isAbortable() && animator.canStop()) {
+                    ((IAnimateHandler) player).simpleanimator$stopAnimate(true);
+                }
             }
         }
     }

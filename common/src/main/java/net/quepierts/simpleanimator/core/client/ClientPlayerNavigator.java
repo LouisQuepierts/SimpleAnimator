@@ -71,8 +71,9 @@ public class ClientPlayerNavigator {
                     timer = 0;
 
                     SimpleAnimator.LOGGER.info("Finish");
-                    if (this.post != null)
+                    if (this.post != null) {
                         post.run();
+                    }
 
                     this.stop(true);
                 }
@@ -84,11 +85,13 @@ public class ClientPlayerNavigator {
     public void navigateTo(Player player, float forward, float left, Runnable post) {
         LocalPlayer local = Minecraft.getInstance().player;
 
-        if (SimpleAnimator.EVENT_BUS.post(new ClientNavigatorEvent.Start(player, forward, left)).isCanceled())
+        if (SimpleAnimator.EVENT_BUS.post(new ClientNavigatorEvent.Start(player, forward, left)).isCanceled()) {
             return;
+        }
 
-        if (PlayerUtils.isRiding(local) && !player.onGround() && !PlayerUtils.inSameDimension(local, player))
+        if (PlayerUtils.isRiding(local) && !player.onGround() && !PlayerUtils.inSameDimension(local, player)) {
             return;
+        }
 
         this.phrase = Phrase.RUNNING;
         this.target = player;

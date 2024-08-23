@@ -3,6 +3,7 @@ package net.quepierts.simpleanimator.api.animation.keyframe;
 import net.minecraft.util.Mth;
 import org.joml.Math;
 import org.joml.Quaternionf;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 public class Interpolation {
@@ -34,17 +35,44 @@ public class Interpolation {
     }
 
     public static VariableHolder linerInterpolation(VariableHolder p1, VariableHolder p2, float delta) {
-        return new VariableHolder(p1.get() * (1.0F - delta) + p2.get() * delta);
+        return p1.linerInterpolation(p1, p2, delta);
     }
 
     public static VariableHolder catmullRomInterpolation(VariableHolder p0, VariableHolder p1, VariableHolder p2, VariableHolder p3, float delta) {
+        return p0.catmullRomInterpolation(p0, p1, p2, p3, delta);
+    }
+
+    public static float linerInterpolation(float p1, float p2, float delta) {
+        return p1 * (1.0F - delta) + p2 * delta;
+    }
+
+    public static float catmullRomInterpolation(float p0, float p1, float p2, float p3, float delta) {
         float t2 = delta * delta;
         float t3 = t2 * delta;
-        return new VariableHolder(0.5F * (2.0F * p1.get() + (-p0.get() + p2.get()) * delta + (2.0F * p0.get() - 5.0F * p1.get() + 4.0F * p2.get() - p3.get()) * t2 + (-p0.get() + 3.0F * p1.get() - 3.0F * p2.get() + p3.get()) * t3));
+        return  0.5F * (2.0F * p1 + (-p0 + p2) * delta + (2.0F * p0 - 5.0F * p1 + 4.0F * p2 - p3) * t2 + (-p0 + 3.0F * p1 - 3.0F * p2 + p3) * t3);
+    }
+
+    public static Vector2f linerInterpolation(Vector2f p1, Vector2f p2, float delta) {
+        return new Vector2f(
+                p1.x * (1.0F - delta) + p2.x * delta,
+                p1.y * (1.0F - delta) + p2.y * delta
+        );
+    }
+
+    public static Vector2f catmullRomInterpolation(Vector2f p0, Vector2f p1, Vector2f p2, Vector2f p3, float delta) {
+        float t2 = delta * delta;
+        float t3 = t2 * delta;
+        float x = 0.5F * (2.0F * p1.x + (-p0.x + p2.x) * delta + (2.0F * p0.x - 5.0F * p1.x + 4.0F * p2.x - p3.x) * t2 + (-p0.x + 3.0F * p1.x - 3.0F * p2.x + p3.x) * t3);
+        float y = 0.5F * (2.0F * p1.y + (-p0.y + p2.y) * delta + (2.0F * p0.y - 5.0F * p1.y + 4.0F * p2.y - p3.y) * t2 + (-p0.y + 3.0F * p1.y - 3.0F * p2.y + p3.y) * t3);
+        return new Vector2f(x, y);
     }
 
     public static Vector3f linerInterpolation(Vector3f p1, Vector3f p2, float delta) {
-        return new Vector3f(p1.x * (1.0F - delta) + p2.x * delta, p1.y * (1.0F - delta) + p2.y * delta, p1.z * (1.0F - delta) + p2.z * delta);
+        return new Vector3f(
+                p1.x * (1.0F - delta) + p2.x * delta,
+                p1.y * (1.0F - delta) + p2.y * delta,
+                p1.z * (1.0F - delta) + p2.z * delta
+        );
     }
 
     public static Vector3f catmullRomInterpolation(Vector3f p0, Vector3f p1, Vector3f p2, Vector3f p3, float delta) {

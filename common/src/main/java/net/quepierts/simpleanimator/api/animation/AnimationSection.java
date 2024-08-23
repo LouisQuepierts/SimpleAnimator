@@ -3,8 +3,7 @@ package net.quepierts.simpleanimator.api.animation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.*;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.network.FriendlyByteBuf;
@@ -24,6 +23,7 @@ public class AnimationSection {
     private static final Quaternionf ZERO_ROT = new Quaternionf();
 
     private static final String PREFIX_VARIABLE = "var_";
+    private static final Object2ByteMap<String> KEYWORDS;
 
     private static final float DEFAULT_FADE_IN = 0.05f;
     private static final float DEFAULT_FADE_OUT = 0.05f;
@@ -38,8 +38,9 @@ public class AnimationSection {
     private final Object2ObjectMap<String, VariableKeyFrame[]> varFrames;
 
     public static AnimationSection fromJsonObject(JsonObject json, Animation.Type type) {
-        if (json == null)
+        if (json == null) {
             return null;
+        }
 
         final boolean repeat = json.has("loop") && json.get("loop").getAsBoolean();
         final float length = json.get("animation_length").getAsFloat();
@@ -55,15 +56,17 @@ public class AnimationSection {
         JsonObject bones = json.getAsJsonObject("bones");
 
         for (Map.Entry<String, JsonElement> entry : bones.entrySet()) {
-            final String key = entry.getKey();
-
-            if (key.startsWith(PREFIX_VARIABLE)) {
-                getVarFramesFromBones(key, entry.getValue().getAsJsonObject(), length, varFrames);
+            if (!entry.getKey().startsWith(type.prefix)) {
                 continue;
             }
-            if (!key.startsWith(type.prefix))
+            final String key = entry.getKey().substring(type.prefix.length() + 1);
+
+            if (key.startsWith(PREFIX_VARIABLE)) {
+                getVarFramesFromBones(key.substring(5), entry.getValue().getAsJsonObject(), length, varFrames);
                 continue;
-            ModelBone bone = ModelBone.fromString(key.substring(type.prefix.length() + 1));
+            }
+
+            ModelBone bone = ModelBone.fromString(key);
 
             if (bone != null) {
                 VectorKeyFrame[] rotation = getRotation(entry.getValue().getAsJsonObject().get("rotation"), bone, length);
@@ -76,8 +79,9 @@ public class AnimationSection {
     }
 
     public static AnimationSection fromJsonObject(JsonObject json) {
-        if (json == null)
+        if (json == null) {
             return null;
+        }
 
         final boolean repeat = json.has("loop") && json.get("loop").getAsBoolean();
         final float length = json.get("animation_length").getAsFloat();
@@ -111,14 +115,14 @@ public class AnimationSection {
         return new AnimationSection(repeat, length, fadeIn, fadeOut, keyFrames, varFrames);
     }
 
-    public Set<String> getVariables(Set<String> set) {
+    public void getVariables(Set<String> set) {
         set.addAll(this.varFrames.keySet());
-        return set;
     }
 
     private static float tryParse(String str, float def) {
-        if (StringUtil.isNullOrEmpty(str))
+        if (StringUtil.isNullOrEmpty(str)) {
             return def;
+        }
         try {
             return Float.parseFloat(str);
         } catch (NumberFormatException e) {
@@ -128,47 +132,62 @@ public class AnimationSection {
 
     private static void getVarFramesFromBones(String key, JsonObject object, float length, Object2ObjectMap<String, VariableKeyFrame[]> map) {
         String[] split = key.split("_+");
-        int min = Math.min(split.length - 1, 3);
-        List<String> keys = new ArrayList<>(3);
-        keys.addAll(Arrays.asList(split).subList(1, Math.min(split.length, 4)));
+        int i = 0;
+        int[] sizes = {1, 1, 1};
+        String[] keys = new String[3];
 
-        if (min > 0) {
-            VariableKeyFrame[] array = fromBones(object.getAsJsonObject("position"), length);
-            if (array != null) {
-                map.put(keys.get(0), array);
+        for (String string : split) {
+            byte b = KEYWORDS.getOrDefault(string, (byte) 0);
+
+            if (b != 0) {
+                sizes[i] = b;
+                continue;
+            }
+
+            keys[i ++] = string;
+            if (i == 3) {
+                break;
             }
         }
 
-        if (min > 1) {
-            VariableKeyFrame[] array = fromBones(object.getAsJsonObject("rotation"), length);
+        if (i > 0) {
+            VariableKeyFrame[] array = getVarsFromBone(object.getAsJsonObject("rotation"), sizes[0], length);
             if (array != null) {
-                map.put(keys.get(1), array);
+                map.put(keys[0], array);
             }
         }
 
-        if (min > 2) {
-            VariableKeyFrame[] array = fromBones(object.getAsJsonObject("scale"), length);
+        if (i > 1) {
+            VariableKeyFrame[] array = getVarsFromBone(object.getAsJsonObject("position"), sizes[1], length);
             if (array != null) {
-                map.put(keys.get(2), array);
+                map.put(keys[1], array);
+            }
+        }
+
+        if (i > 2) {
+            VariableKeyFrame[] array = getVarsFromBone(object.getAsJsonObject("scale"), sizes[2], length);
+            if (array != null) {
+                map.put(keys[2], array);
             }
         }
     }
 
-    private static VariableKeyFrame[] fromBones(JsonElement element, float length) {
-        if (element == null)
+    private static VariableKeyFrame[] getVarsFromBone(JsonElement element, int size, float length) {
+        if (element == null) {
             return null;
+        }
 
         if (element.isJsonArray()) {
             JsonArray array = element.getAsJsonArray();
             return new VariableKeyFrame[] {
                     new VariableKeyFrame(
                             0,
-                            new VariableHolder(array.get(0).getAsFloat()),
+                            VariableHolder.fromJsonArray(array, size),
                             LerpMode.LINEAR
                     ),
                     new VariableKeyFrame(
                             length,
-                            new VariableHolder(array.get(0).getAsFloat()),
+                            VariableHolder.fromJsonArray(array, size),
                             LerpMode.LINEAR
                     )
             };
@@ -187,7 +206,7 @@ public class AnimationSection {
                         array = obj.getAsJsonArray("post");
                         mode = LerpMode.valueOf(obj.get("lerp_mode").getAsString().toUpperCase());
                     }
-                    VariableHolder holder = new VariableHolder(array.get(0).getAsFloat());
+                    VariableHolder holder = VariableHolder.fromJsonArray(array, size);
                     return new VariableKeyFrame(time, holder, mode);
                 }).toArray(VariableKeyFrame[]::new);
     }
@@ -214,8 +233,9 @@ public class AnimationSection {
     }
 
     private static VectorKeyFrame[] getRotation(JsonElement element, ModelBone bone, float length) {
-        if (element == null)
+        if (element == null) {
             return new VectorKeyFrame[0];
+        }
 
         if (element.isJsonArray()) {
             JsonArray array = element.getAsJsonArray();
@@ -287,8 +307,9 @@ public class AnimationSection {
     }
 
     private static VectorKeyFrame[] getPosition(JsonElement element, ModelBone bone, float length) {
-        if (element == null)
+        if (element == null) {
             return new VectorKeyFrame[0];
+        }
 
         if (element.isJsonArray()) {
             JsonArray array = element.getAsJsonArray();
@@ -571,5 +592,21 @@ public class AnimationSection {
             }
             return arr;
         }
+    }
+
+    static {
+        Object2ByteOpenHashMap<String> keywords = new Object2ByteOpenHashMap<>(6);
+        keywords.put("vec2", (byte) 2);
+        keywords.put("vec3", (byte) 3);
+        keywords.put("float",(byte) 1);
+        keywords.put("float2", (byte) 2);
+        keywords.put("float3", (byte) 3);
+        keywords.put("int", (byte) 1);
+        keywords.put("int2", (byte) 2);
+        keywords.put("int3", (byte) 3);
+        keywords.put("bool", (byte) 1);
+        keywords.put("bool2", (byte) 2);
+        keywords.put("bool3", (byte) 3);
+        KEYWORDS = Object2ByteMaps.unmodifiable(keywords);
     }
 }
