@@ -55,6 +55,10 @@ public class VariableHolder {
         this.value = value;
     }
 
+    public void setValue(VariableHolder holder) {
+        this.value = holder.value;
+    }
+
     public int getAsInt() {
         return (int) this.value;
     }
@@ -101,6 +105,13 @@ public class VariableHolder {
 
         public Float2(Vector2f vector2f) {
             super(vector2f.x);
+            this.y = vector2f.y;
+        }
+
+        @Override
+        public void setValue(VariableHolder holder) {
+            Vector2f vector2f = holder.getAsVector2f();
+            this.setValue(vector2f.x);
             this.y = vector2f.y;
         }
 
@@ -158,6 +169,14 @@ public class VariableHolder {
 
         public Float3(Vector3f vector3f) {
             super(vector3f.x);
+            this.y = vector3f.y;
+            this.z = vector3f.z;
+        }
+
+        @Override
+        public void setValue(VariableHolder holder) {
+            Vector3f vector3f = holder.getAsVector3f();
+            this.setValue(vector3f.x);
             this.y = vector3f.y;
             this.z = vector3f.z;
         }

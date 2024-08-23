@@ -495,7 +495,7 @@ public class AnimationSection {
 
         } else {
             final float time = Mth.clamp(animator.getTimer(), 0.0f, length);
-            holder.setValue(Interpolation.interpolation(frames, holder, time).get());
+            holder.setValue(Interpolation.interpolation(frames, holder, time));
         }
     }
 
