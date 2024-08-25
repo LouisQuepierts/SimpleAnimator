@@ -7,6 +7,14 @@ architectury {
     neoForge()
 }
 
+loom {
+    runs {
+        configureEach {
+            vmArgs.addAll "-XX:+IgnoreUnrecognizedVMOptions", "-XX:+AllowEnhancedClassRedefinition", "-XX:ReservedCodeCacheSize=484M", "-XX:NonNMethodCodeHeapSize=4M", "-XX:NonProfiledCodeHeapSize=240M", "-XX:ProfiledCodeHeapSize=240M"
+        }
+    }
+}
+
 configurations {
     common {
         canBeResolved = true

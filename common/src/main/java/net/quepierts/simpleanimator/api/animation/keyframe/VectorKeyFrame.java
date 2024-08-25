@@ -13,14 +13,15 @@ public class VectorKeyFrame extends KeyFrame<Vector3f> {
         return byteBuf.readVector3f();
     }
 
-    public VectorKeyFrame(float time, Vector3f obj, LerpMode mode) {
-        super(time, obj, mode);
+    public VectorKeyFrame(float time, Vector3f pre, Vector3f post, LerpMode mode) {
+        super(time, pre, post, mode);
     }
 
     @Override
     public void toNetwork(FriendlyByteBuf byteBuf) {
         super.toNetwork(byteBuf);
-        byteBuf.writeVector3f(this.value);
+        byteBuf.writeVector3f(this.pre);
+        byteBuf.writeVector3f(this.post);
     }
 
     @Override

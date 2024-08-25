@@ -9,17 +9,20 @@ import java.util.function.Function;
 public abstract class KeyFrame<T> {
      protected final float time;
     protected final LerpMode mode;
-    protected final T value;
+    protected final T pre;
+    protected T post;
 
     public KeyFrame(FriendlyByteBuf byteBuf, Function<FriendlyByteBuf, T> decoder) {
         this.time = byteBuf.readFloat();
         this.mode = byteBuf.readEnum(LerpMode.class);
-        this.value = decoder.apply(byteBuf);
+        this.pre = decoder.apply(byteBuf);
+        this.post = decoder.apply(byteBuf);
     }
 
-    public KeyFrame(float time, T obj, LerpMode mode) {
+    public KeyFrame(float time, T pre, T post, LerpMode mode) {
         this.time = time;
-        this.value = obj;
+        this.pre = pre;
+        this.post = post;
         this.mode = mode;
     }
 
@@ -31,8 +34,12 @@ public abstract class KeyFrame<T> {
         return mode;
     }
 
-    public T getValue() {
-        return value;
+    public T getPre() {
+        return pre;
+    }
+
+    public T getPost() {
+        return post;
     }
 
     public void toNetwork(FriendlyByteBuf byteBuf) {

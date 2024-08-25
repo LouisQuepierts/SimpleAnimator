@@ -26,9 +26,9 @@ public class Interpolation {
         float localT = (time - kf1.getTime()) / (kf2.getTime() - kf1.getTime());
 
         switch (kf2.getMode()) {
-            case LINEAR -> out = kf2.linerInterpolation(kf1.getValue(), kf2.getValue(), localT);
-            case CATMULLROM -> out = kf2.catmullRomInterpolation(kf0.getValue(), kf1.getValue(), kf2.getValue(), kf3.getValue(), localT);
-            case STEP -> out = kf1.getValue();
+            case LINEAR -> out = kf2.linerInterpolation(kf1.getPost(), kf2.getPre(), localT);
+            case CATMULLROM -> out = kf2.catmullRomInterpolation(kf0.getPost(), kf1.getPost(), kf2.getPost(), kf3.getPost(), localT);
+            case STEP -> out = kf1.getPre();
         }
 
         return out;
@@ -75,6 +75,14 @@ public class Interpolation {
         );
     }
 
+    public static Vector3f linerInterpolation(Vector3f p1, Vector3f p2, Vector3f out, float delta) {
+        return out.set(
+                p1.x * (1.0F - delta) + p2.x * delta,
+                p1.y * (1.0F - delta) + p2.y * delta,
+                p1.z * (1.0F - delta) + p2.z * delta
+        );
+    }
+
     public static Vector3f catmullRomInterpolation(Vector3f p0, Vector3f p1, Vector3f p2, Vector3f p3, float delta) {
         float t2 = delta * delta;
         float t3 = t2 * delta;
@@ -82,6 +90,15 @@ public class Interpolation {
         float y = 0.5F * (2.0F * p1.y + (-p0.y + p2.y) * delta + (2.0F * p0.y - 5.0F * p1.y + 4.0F * p2.y - p3.y) * t2 + (-p0.y + 3.0F * p1.y - 3.0F * p2.y + p3.y) * t3);
         float z = 0.5F * (2.0F * p1.z + (-p0.z + p2.z) * delta + (2.0F * p0.z - 5.0F * p1.z + 4.0F * p2.z - p3.z) * t2 + (-p0.z + 3.0F * p1.z - 3.0F * p2.z + p3.z) * t3);
         return new Vector3f(x, y, z);
+    }
+
+    public static Vector3f catmullRomInterpolation(Vector3f p0, Vector3f p1, Vector3f p2, Vector3f p3, Vector3f out, float delta) {
+        float t2 = delta * delta;
+        float t3 = t2 * delta;
+        float x = 0.5F * (2.0F * p1.x + (-p0.x + p2.x) * delta + (2.0F * p0.x - 5.0F * p1.x + 4.0F * p2.x - p3.x) * t2 + (-p0.x + 3.0F * p1.x - 3.0F * p2.x + p3.x) * t3);
+        float y = 0.5F * (2.0F * p1.y + (-p0.y + p2.y) * delta + (2.0F * p0.y - 5.0F * p1.y + 4.0F * p2.y - p3.y) * t2 + (-p0.y + 3.0F * p1.y - 3.0F * p2.y + p3.y) * t3);
+        float z = 0.5F * (2.0F * p1.z + (-p0.z + p2.z) * delta + (2.0F * p0.z - 5.0F * p1.z + 4.0F * p2.z - p3.z) * t2 + (-p0.z + 3.0F * p1.z - 3.0F * p2.z + p3.z) * t3);
+        return out.set(x, y, z);
     }
 
     public static Quaternionf linerInterpolation(Quaternionf p1, Quaternionf p2, float delta) {

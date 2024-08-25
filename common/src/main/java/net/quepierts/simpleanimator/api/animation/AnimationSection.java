@@ -106,8 +106,8 @@ public class AnimationSection {
             ModelBone bone = ModelBone.fromString(key);
 
             if (bone != null) {
-                VectorKeyFrame[] rotation = getRotation(entry.getValue().getAsJsonObject().getAsJsonObject("rotation"), bone, length);
-                VectorKeyFrame[] position = getPosition(entry.getValue().getAsJsonObject().getAsJsonObject("position"), bone, length);
+                VectorKeyFrame[] rotation = getRotation(entry.getValue().getAsJsonObject().get("rotation"), bone, length);
+                VectorKeyFrame[] position = getPosition(entry.getValue().getAsJsonObject().get("position"), bone, length);
                 keyFrames.put(bone, new BoneData(rotation, position));
             }
         }
@@ -151,21 +151,21 @@ public class AnimationSection {
         }
 
         if (i > 0) {
-            VariableKeyFrame[] array = getVarsFromBone(object.getAsJsonObject("rotation"), sizes[0], length);
+            VariableKeyFrame[] array = getVarsFromBone(object.get("rotation"), sizes[0], length);
             if (array != null) {
                 map.put(keys[0], array);
             }
         }
 
         if (i > 1) {
-            VariableKeyFrame[] array = getVarsFromBone(object.getAsJsonObject("position"), sizes[1], length);
+            VariableKeyFrame[] array = getVarsFromBone(object.get("position"), sizes[1], length);
             if (array != null) {
                 map.put(keys[1], array);
             }
         }
 
         if (i > 2) {
-            VariableKeyFrame[] array = getVarsFromBone(object.getAsJsonObject("scale"), sizes[2], length);
+            VariableKeyFrame[] array = getVarsFromBone(object.get("scale"), sizes[2], length);
             if (array != null) {
                 map.put(keys[2], array);
             }
@@ -179,15 +179,16 @@ public class AnimationSection {
 
         if (element.isJsonArray()) {
             JsonArray array = element.getAsJsonArray();
+            VariableHolder pre = VariableHolder.fromJsonArray(array, size);
             return new VariableKeyFrame[] {
                     new VariableKeyFrame(
                             0,
-                            VariableHolder.fromJsonArray(array, size),
+                            pre, pre,
                             LerpMode.LINEAR
                     ),
                     new VariableKeyFrame(
                             length,
-                            VariableHolder.fromJsonArray(array, size),
+                            pre, pre,
                             LerpMode.LINEAR
                     )
             };
@@ -196,18 +197,27 @@ public class AnimationSection {
         JsonObject object = element.getAsJsonObject();
         return object.entrySet().stream()
                 .map(entry -> {
-                    JsonArray array;
+                    JsonArray pre;
+                    JsonArray post;
                     float time = Float.parseFloat(entry.getKey());
                     LerpMode mode = LerpMode.LINEAR;
                     if (entry.getValue().isJsonArray()) {
-                        array = entry.getValue().getAsJsonArray();
+                        pre = entry.getValue().getAsJsonArray();
+                        post = null;
                     } else {
                         JsonObject obj = entry.getValue().getAsJsonObject();
-                        array = obj.getAsJsonArray("post");
-                        mode = LerpMode.valueOf(obj.get("lerp_mode").getAsString().toUpperCase());
+                        pre = obj.getAsJsonArray("pre");
+                        post = obj.getAsJsonArray("post");
+
+                        if (pre == null)
+                            pre = post;
+
+                        JsonElement lerpMode = obj.get("lerp_mode");
+                        mode = lerpMode == null ? LerpMode.LINEAR : LerpMode.valueOf(lerpMode.getAsString().toUpperCase());
                     }
-                    VariableHolder holder = VariableHolder.fromJsonArray(array, size);
-                    return new VariableKeyFrame(time, holder, mode);
+                    VariableHolder preHolder = VariableHolder.fromJsonArray(pre, size);
+                    VariableHolder postHolder = post == null ? preHolder : VariableHolder.fromJsonArray(post, size);
+                    return new VariableKeyFrame(time, preHolder, postHolder, mode);
                 }).toArray(VariableKeyFrame[]::new);
     }
 
@@ -239,41 +249,22 @@ public class AnimationSection {
 
         if (element.isJsonArray()) {
             JsonArray array = element.getAsJsonArray();
-            /*return new VectorKeyFrame[] {
+
+            Vector3f vector3f = new Vector3f(
+                    (float) Math.toRadians(array.get(0).getAsFloat()),
+                    (float) Math.toRadians(array.get(1).getAsFloat()),
+                    (float) Math.toRadians(array.get(2).getAsFloat())
+            );
+            return new VectorKeyFrame[] {
                     new VectorKeyFrame(
                             0,
-                            new Quaternionf().rotateXYZ(
-                                    (float) Math.toRadians(array.get(0).getAsFloat()),
-                                    (float) Math.toRadians(array.get(1).getAsFloat()),
-                                    (float) Math.toRadians(array.get(2).getAsFloat())
-                            ),
+                            vector3f, vector3f,
                             LerpMode.LINEAR
                     ),
                     new VectorKeyFrame(
                             length,
-                            new Quaternionf().rotateXYZ(
-                                    (float) Math.toRadians(array.get(0).getAsFloat()),
-                                    (float) Math.toRadians(array.get(1).getAsFloat()),
-                                    (float) Math.toRadians(array.get(2).getAsFloat())
-                            ), LerpMode.LINEAR
-                    )
-            };*/
-            return new VectorKeyFrame[] {
-                    new VectorKeyFrame(
-                            0,
-                            new Vector3f(
-                                    (float) Math.toRadians(array.get(0).getAsFloat()),
-                                    (float) Math.toRadians(array.get(1).getAsFloat()),
-                                    (float) Math.toRadians(array.get(2).getAsFloat())
-                            ), LerpMode.LINEAR
-                    ),
-                    new VectorKeyFrame(
-                            length,
-                            new Vector3f(
-                                    (float) Math.toRadians(array.get(0).getAsFloat()),
-                                    (float) Math.toRadians(array.get(1).getAsFloat()),
-                                    (float) Math.toRadians(array.get(2).getAsFloat())
-                            ), LerpMode.LINEAR
+                            vector3f, vector3f,
+                            LerpMode.LINEAR
                     )
             };
         }
@@ -281,28 +272,41 @@ public class AnimationSection {
         JsonObject object = element.getAsJsonObject();
         return object.entrySet().stream()
                 .map(entry -> {
-                    JsonArray array;
+                    JsonArray pre;
+                    JsonArray post;
                     float time = Float.parseFloat(entry.getKey());
                     LerpMode mode = LerpMode.LINEAR;
                     if (entry.getValue().isJsonArray()) {
-                        array = entry.getValue().getAsJsonArray();
+                        pre = entry.getValue().getAsJsonArray();
+                        post = null;
                     } else {
                         JsonObject obj = entry.getValue().getAsJsonObject();
-                        array = obj.getAsJsonArray("post");
-                        mode = LerpMode.valueOf(obj.get("lerp_mode").getAsString().toUpperCase());
+                        pre = obj.getAsJsonArray("pre");
+                        post = obj.getAsJsonArray("post");
+
+                        if (pre == null)
+                            pre = post;
+                        JsonElement lerpMode = obj.get("lerp_mode");
+                        mode = lerpMode == null ? LerpMode.LINEAR : LerpMode.valueOf(lerpMode.getAsString().toUpperCase());
                     }
-                    Vector3f rotation = new Vector3f(
-                            (float) Math.toRadians(array.get(0).getAsFloat()),
-                            (float) Math.toRadians(array.get(1).getAsFloat()),
-                            (float) Math.toRadians(array.get(2).getAsFloat())
+                    Vector3f preRotation = new Vector3f(
+                            (float) Math.toRadians(pre.get(0).getAsFloat()),
+                            (float) Math.toRadians(pre.get(1).getAsFloat()),
+                            (float) Math.toRadians(pre.get(2).getAsFloat())
+                    );
+
+                    Vector3f postRotation = post == null ? preRotation : new Vector3f(
+                            (float) Math.toRadians(post.get(0).getAsFloat()),
+                            (float) Math.toRadians(post.get(1).getAsFloat()),
+                            (float) Math.toRadians(post.get(2).getAsFloat())
                     );
                     /*Quaternionf quaternionf = new Quaternionf().rotateXYZ(
-                            (float) Math.toRadians(array.get(0).getAsFloat()),
-                            (float) Math.toRadians(array.get(1).getAsFloat()),
-                            (float) Math.toRadians(array.get(2).getAsFloat())
+                            (float) Math.toRadians(post.get(0).getAsFloat()),
+                            (float) Math.toRadians(post.get(1).getAsFloat()),
+                            (float) Math.toRadians(post.get(2).getAsFloat())
                     );
                     return new VectorKeyFrame(time, quaternionf, mode);*/
-                    return new VectorKeyFrame(time, rotation, mode);
+                    return new VectorKeyFrame(time, preRotation, postRotation, mode);
                 }).toArray(VectorKeyFrame[]::new);
     }
 
@@ -313,22 +317,19 @@ public class AnimationSection {
 
         if (element.isJsonArray()) {
             JsonArray array = element.getAsJsonArray();
+            Vector3f vector3f = new Vector3f(
+                    array.get(0).getAsFloat(),
+                    array.get(1).getAsFloat(),
+                    array.get(2).getAsFloat()
+            );
             return new VectorKeyFrame[] {
                     new VectorKeyFrame(
                             0,
-                            new Vector3f(
-                                    array.get(0).getAsFloat(),
-                                    array.get(1).getAsFloat(),
-                                    array.get(2).getAsFloat()
-                            ), LerpMode.LINEAR
+                            vector3f, vector3f, LerpMode.LINEAR
                     ),
                     new VectorKeyFrame(
                             length,
-                            new Vector3f(
-                                    array.get(0).getAsFloat(),
-                                    array.get(1).getAsFloat(),
-                                    array.get(2).getAsFloat()
-                            ), LerpMode.LINEAR
+                            vector3f, vector3f, LerpMode.LINEAR
                     )
             };
         }
@@ -336,28 +337,41 @@ public class AnimationSection {
         JsonObject object = element.getAsJsonObject();
         return object.entrySet().stream()
                 .map(entry -> {
-                    JsonArray array;
+                    JsonArray pre;
+                    JsonArray post;
                     float time = Float.parseFloat(entry.getKey());
                     LerpMode mode = LerpMode.LINEAR;
                     if (entry.getValue().isJsonArray()) {
-                        array = entry.getValue().getAsJsonArray();
+                        pre = entry.getValue().getAsJsonArray();
+                        post = null;
                     } else {
                         JsonObject obj = entry.getValue().getAsJsonObject();
-                        array = obj.getAsJsonArray("post");
-                        mode = LerpMode.valueOf(obj.get("lerp_mode").getAsString().toUpperCase());
+                        pre = obj.getAsJsonArray("pre");
+                        post = obj.getAsJsonArray("post");
+
+                        if (pre == null)
+                            pre = post;
+
+                        JsonElement lerpMode = obj.get("lerp_mode");
+                        mode = lerpMode == null ? LerpMode.LINEAR : LerpMode.valueOf(lerpMode.getAsString().toUpperCase());
                     }
-                    Vector3f vec3 = new Vector3f(
-                            array.get(0).getAsFloat(),
-                            array.get(1).getAsFloat(),
-                            array.get(2).getAsFloat()
+                    Vector3f prePosition = new Vector3f(
+                            pre.get(0).getAsFloat(),
+                            pre.get(1).getAsFloat(),
+                            pre.get(2).getAsFloat()
+                    );
+                    Vector3f postPosition = post == null ? prePosition : new Vector3f(
+                            post.get(0).getAsFloat(),
+                            post.get(1).getAsFloat(),
+                            post.get(2).getAsFloat()
                     );
 
                     // Fix offset for arms
                     if (bone == ModelBone.LEFT_ARM || bone == ModelBone.RIGHT_ARM) {
-                        vec3.y += 0.5f;
+                        prePosition.y += 0.5f;
                     }
 
-                    return new VectorKeyFrame(time, vec3, mode);
+                    return new VectorKeyFrame(time, prePosition, postPosition, mode);
                 }).toArray(VectorKeyFrame[]::new);
     }
 
@@ -412,7 +426,7 @@ public class AnimationSection {
             if (posFrames.length != 0) {
                 cache.position().set(Interpolation.linerInterpolation(
                         IAnimationState.Impl.get(animator.getCurState()).getSrc(cache.position(), position),
-                        IAnimationState.Impl.get(animator.getNextState()).getDest(posFrames[0].getValue(), position),
+                        IAnimationState.Impl.get(animator.getNextState()).getDest(posFrames[0].getPre(), position),
                         time
                 ));
             } else {
@@ -433,7 +447,7 @@ public class AnimationSection {
                 cache.rotation().set(
                         Interpolation.linerInterpolation(
                                 IAnimationState.Impl.get(animator.getCurState()).getSrc(cache.rotation(), rotation),
-                                IAnimationState.Impl.get(animator.getNextState()).getDest(rotFrames[0].getValue(), rotation),
+                                IAnimationState.Impl.get(animator.getNextState()).getDest(rotFrames[0].getPre(), rotation),
                                 time
                         )
                 );
@@ -479,7 +493,7 @@ public class AnimationSection {
                 holder.setValue(
                         Interpolation.linerInterpolation(
                                 IAnimationState.Impl.get(animator.getCurState()).getSrc(holder, target),
-                                IAnimationState.Impl.get(animator.getNextState()).getDest(frames[0].getValue(), target),
+                                IAnimationState.Impl.get(animator.getNextState()).getDest(frames[0].getPre(), target),
                                 time
                         ).get()
                 );

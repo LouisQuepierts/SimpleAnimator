@@ -8,14 +8,15 @@ public class VariableKeyFrame extends KeyFrame<VariableHolder> {
         super(byteBuf, VariableHolder::decode);
     }
 
-    public VariableKeyFrame(float time, VariableHolder obj, LerpMode mode) {
-        super(time, obj, mode);
+    public VariableKeyFrame(float time, VariableHolder pre, VariableHolder post, LerpMode mode) {
+        super(time, pre, post, mode);
     }
 
     @Override
     public void toNetwork(FriendlyByteBuf byteBuf) {
         super.toNetwork(byteBuf);
-        this.value.toNetwork(byteBuf);
+        this.pre.toNetwork(byteBuf);
+        this.post.toNetwork(byteBuf);
     }
 
     @Override

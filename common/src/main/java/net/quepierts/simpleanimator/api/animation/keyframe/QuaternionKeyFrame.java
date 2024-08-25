@@ -13,14 +13,15 @@ public class QuaternionKeyFrame extends KeyFrame<Quaternionf> {
         return byteBuf.readQuaternion();
     }
 
-    public QuaternionKeyFrame(float time, Quaternionf obj, LerpMode mode) {
-        super(time, obj, mode);
+    public QuaternionKeyFrame(float time, Quaternionf pre, Quaternionf post, LerpMode mode) {
+        super(time, pre, post, mode);
     }
 
     @Override
     public void toNetwork(FriendlyByteBuf byteBuf) {
         super.toNetwork(byteBuf);
-        byteBuf.writeQuaternion(this.value);
+        byteBuf.writeQuaternion(this.pre);
+        byteBuf.writeQuaternion(this.post);
     }
 
     @Override
