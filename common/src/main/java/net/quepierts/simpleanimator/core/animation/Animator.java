@@ -49,7 +49,7 @@ public class Animator {
         this.animation = SimpleAnimator.getProxy().getAnimationManager().getAnimation(location);
         this.timer = 0;
 
-        SimpleAnimator.EVENT_BUS.post(new AnimatorEvent.Play(this.uuid, this.animationLocation, this.animation));
+        SimpleAnimator.EVENT_BUS.post(new AnimatorEvent.Play(this.uuid, this.animationLocation, this.animation, this));
         return true;
     }
 
@@ -57,7 +57,7 @@ public class Animator {
         if (this.animation == null)
             return false;
 
-        SimpleAnimator.EVENT_BUS.post(new AnimatorEvent.Stop(this.uuid, this.animationLocation, this.animation));
+        SimpleAnimator.EVENT_BUS.post(new AnimatorEvent.Stop(this.uuid, this.animationLocation, this.animation, this));
         /*RequestHolder holder = SimpleAnimator.getProxy().getInteractionManager().get(this.uuid);
         if (holder != null) {
             holder.reset();
@@ -95,7 +95,7 @@ public class Animator {
     }
 
     public void reset(boolean update) {
-        SimpleAnimator.EVENT_BUS.post(new AnimatorEvent.Reset(this.uuid, this.animationLocation, this.animation));
+        SimpleAnimator.EVENT_BUS.post(new AnimatorEvent.Reset(this.uuid, this.animationLocation, this.animation, this));
 
         this.timer = 0;
         this.animation = null;
@@ -104,6 +104,10 @@ public class Animator {
 
     public boolean isRunning() {
         return !animationLocation.equals(EMPTY) && this.animation != null;
+    }
+
+    public boolean isLocal() {
+        return false;
     }
 
     public float getSpeed() {

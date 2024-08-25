@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.quepierts.simpleanimator.api.animation.Animation;
 import net.quepierts.simpleanimator.api.animation.AnimationState;
 import net.quepierts.simpleanimator.api.event.SAEvent;
+import net.quepierts.simpleanimator.core.client.ClientAnimator;
 
 import java.util.UUID;
 
@@ -14,14 +15,16 @@ import java.util.UUID;
 @Environment(EnvType.CLIENT)
 public abstract class ClientAnimatorStateEvent extends SAEvent {
     private final UUID owner;
+    private final ClientAnimator animator;
     private final ResourceLocation animationID;
     private final Animation animation;
     private final AnimationState curState;
     private final AnimationState nextState;
     private final boolean local;
 
-    protected ClientAnimatorStateEvent(UUID owner, ResourceLocation animationID, Animation animation, AnimationState curState, AnimationState nextState) {
+    protected ClientAnimatorStateEvent(UUID owner, ClientAnimator animator, ResourceLocation animationID, Animation animation, AnimationState curState, AnimationState nextState) {
         this.owner = owner;
+        this.animator = animator;
         this.animationID = animationID;
         this.animation = animation;
         this.curState = curState;
@@ -31,6 +34,10 @@ public abstract class ClientAnimatorStateEvent extends SAEvent {
 
     public UUID getOwner() {
         return owner;
+    }
+
+    public ClientAnimator getAnimator() {
+        return animator;
     }
 
     public ResourceLocation getAnimationID() {
@@ -54,20 +61,20 @@ public abstract class ClientAnimatorStateEvent extends SAEvent {
     }
 
     public static class Enter extends ClientAnimatorStateEvent {
-        public Enter(UUID owner, ResourceLocation animationID, Animation animation, AnimationState curState, AnimationState nextState) {
-            super(owner, animationID, animation, curState, nextState);
+        public Enter(UUID owner, ClientAnimator animator, ResourceLocation animationID, Animation animation, AnimationState curState, AnimationState nextState) {
+            super(owner, animator, animationID, animation, curState, nextState);
         }
     }
 
     public static class Exit extends ClientAnimatorStateEvent {
-        public Exit(UUID owner, ResourceLocation animationID, Animation animation, AnimationState curState, AnimationState nextState) {
-            super(owner, animationID, animation, curState, nextState);
+        public Exit(UUID owner, ClientAnimator animator, ResourceLocation animationID, Animation animation, AnimationState curState, AnimationState nextState) {
+            super(owner, animator, animationID, animation, curState, nextState);
         }
     }
 
     public static class Loop extends ClientAnimatorStateEvent {
-        public Loop(UUID owner, ResourceLocation animationID, Animation animation, AnimationState curState, AnimationState nextState) {
-            super(owner, animationID, animation, curState, nextState);
+        public Loop(UUID owner, ClientAnimator animator, ResourceLocation animationID, Animation animation, AnimationState curState, AnimationState nextState) {
+            super(owner, animator, animationID, animation, curState, nextState);
         }
     }
 }

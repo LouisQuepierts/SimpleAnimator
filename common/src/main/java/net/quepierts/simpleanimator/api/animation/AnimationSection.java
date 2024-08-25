@@ -15,7 +15,10 @@ import net.quepierts.simpleanimator.core.client.state.IAnimationState;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.IntFunction;
 
 public class AnimationSection {
@@ -35,7 +38,7 @@ public class AnimationSection {
     private final float fadeOut;
 
     private final EnumMap<ModelBone, BoneData> keyFrames;
-    private final Object2ObjectMap<String, VariableKeyFrame[]> varFrames;
+    private final Object2ObjectMap<String, VariableKeyFrame.Group> varFrames;
 
     public static AnimationSection fromJsonObject(JsonObject json, Animation.Type type) {
         if (json == null) {
@@ -52,7 +55,7 @@ public class AnimationSection {
         float fadeOut = tryParse(variables.get("fade_out"), DEFAULT_FADE_OUT);
 
         EnumMap<ModelBone, BoneData> keyFrames = new EnumMap<>(ModelBone.class);
-        Object2ObjectMap<String, VariableKeyFrame[]> varFrames = new Object2ObjectOpenHashMap<>();
+        Object2ObjectMap<String, VariableKeyFrame.Group> varFrames = new Object2ObjectOpenHashMap<>();
         JsonObject bones = json.getAsJsonObject("bones");
 
         for (Map.Entry<String, JsonElement> entry : bones.entrySet()) {
@@ -62,7 +65,7 @@ public class AnimationSection {
             final String key = entry.getKey().substring(type.prefix.length() + 1);
 
             if (key.startsWith(PREFIX_VARIABLE)) {
-                getVarFramesFromBones(key.substring(5), entry.getValue().getAsJsonObject(), length, varFrames);
+                getVarFramesFromBones(key.substring(4), entry.getValue().getAsJsonObject(), length, varFrames);
                 continue;
             }
 
@@ -93,13 +96,13 @@ public class AnimationSection {
         float fadeOut = tryParse(variables.get("fade_out"), DEFAULT_FADE_OUT);
 
         EnumMap<ModelBone, BoneData> keyFrames = new EnumMap<>(ModelBone.class);
-        Object2ObjectMap<String, VariableKeyFrame[]> varFrames = new Object2ObjectOpenHashMap<>();
+        Object2ObjectMap<String, VariableKeyFrame.Group> varFrames = new Object2ObjectOpenHashMap<>();
         JsonObject bones = json.getAsJsonObject("bones");
 
         for (Map.Entry<String, JsonElement> entry : bones.entrySet()) {
             String key = entry.getKey();
             if (key.startsWith(PREFIX_VARIABLE)) {
-                getVarFramesFromBones(key, entry.getValue().getAsJsonObject(), length, varFrames);
+                getVarFramesFromBones(key.substring(4), entry.getValue().getAsJsonObject(), length, varFrames);
                 continue;
             }
 
@@ -115,8 +118,10 @@ public class AnimationSection {
         return new AnimationSection(repeat, length, fadeIn, fadeOut, keyFrames, varFrames);
     }
 
-    public void getVariables(Set<String> set) {
-        set.addAll(this.varFrames.keySet());
+    public void getVariables(Object2IntMap<String> set) {
+        for (Map.Entry<String, VariableKeyFrame.Group> entry : this.varFrames.entrySet()) {
+            set.put(entry.getKey(), entry.getValue().variableSize());
+        }
     }
 
     private static float tryParse(String str, float def) {
@@ -130,7 +135,7 @@ public class AnimationSection {
         }
     }
 
-    private static void getVarFramesFromBones(String key, JsonObject object, float length, Object2ObjectMap<String, VariableKeyFrame[]> map) {
+    private static void getVarFramesFromBones(String key, JsonObject object, float length, Object2ObjectMap<String, VariableKeyFrame.Group> map) {
         String[] split = key.split("_+");
         int i = 0;
         int[] sizes = {1, 1, 1};
@@ -144,35 +149,35 @@ public class AnimationSection {
                 continue;
             }
 
-            keys[i ++] = string;
+            keys[i++] = string;
             if (i == 3) {
                 break;
             }
         }
 
         if (i > 0) {
-            VariableKeyFrame[] array = getVarsFromBone(object.get("rotation"), sizes[0], length);
+            VariableKeyFrame.Group array = getVarsFromBone(object.get("rotation"), sizes[0], length);
             if (array != null) {
                 map.put(keys[0], array);
             }
         }
 
         if (i > 1) {
-            VariableKeyFrame[] array = getVarsFromBone(object.get("position"), sizes[1], length);
+            VariableKeyFrame.Group array = getVarsFromBone(object.get("position"), sizes[1], length);
             if (array != null) {
                 map.put(keys[1], array);
             }
         }
 
         if (i > 2) {
-            VariableKeyFrame[] array = getVarsFromBone(object.get("scale"), sizes[2], length);
+            VariableKeyFrame.Group array = getVarsFromBone(object.get("scale"), sizes[2], length);
             if (array != null) {
                 map.put(keys[2], array);
             }
         }
     }
 
-    private static VariableKeyFrame[] getVarsFromBone(JsonElement element, int size, float length) {
+    private static VariableKeyFrame.Group getVarsFromBone(JsonElement element, int size, float length) {
         if (element == null) {
             return null;
         }
@@ -180,7 +185,8 @@ public class AnimationSection {
         if (element.isJsonArray()) {
             JsonArray array = element.getAsJsonArray();
             VariableHolder pre = VariableHolder.fromJsonArray(array, size);
-            return new VariableKeyFrame[] {
+            return new VariableKeyFrame.Group(
+                    new VariableKeyFrame[] {
                     new VariableKeyFrame(
                             0,
                             pre, pre,
@@ -190,12 +196,13 @@ public class AnimationSection {
                             length,
                             pre, pre,
                             LerpMode.LINEAR
-                    )
-            };
+                    )}
+                    , size
+            );
         }
 
         JsonObject object = element.getAsJsonObject();
-        return object.entrySet().stream()
+        VariableKeyFrame[] array = object.entrySet().stream()
                 .map(entry -> {
                     JsonArray pre;
                     JsonArray post;
@@ -219,6 +226,7 @@ public class AnimationSection {
                     VariableHolder postHolder = post == null ? preHolder : VariableHolder.fromJsonArray(post, size);
                     return new VariableKeyFrame(time, preHolder, postHolder, mode);
                 }).toArray(VariableKeyFrame[]::new);
+        return new VariableKeyFrame.Group(array, size);
     }
 
     private static Map<String, String> getVariables(String input) {
@@ -375,7 +383,7 @@ public class AnimationSection {
                 }).toArray(VectorKeyFrame[]::new);
     }
 
-    public AnimationSection(boolean repeat, float length, float fadeIn, float fadeOut, EnumMap<ModelBone, BoneData> keyFrames, Object2ObjectMap<String, VariableKeyFrame[]> varFrames) {
+    public AnimationSection(boolean repeat, float length, float fadeIn, float fadeOut, EnumMap<ModelBone, BoneData> keyFrames, Object2ObjectMap<String, VariableKeyFrame.Group> varFrames) {
         this.repeat = repeat;
         this.length = length;
         this.fadeIn = fadeIn;
@@ -477,12 +485,12 @@ public class AnimationSection {
     }
 
     public void update(String variable, VariableHolder holder, ClientAnimator animator, float fadeIn) {
-        final VariableKeyFrame[] frames = this.varFrames.get(variable);
-
-        if (frames == null) {
+        VariableKeyFrame.Group group = this.varFrames.get(variable);
+        if (group == null) {
             holder.setValue(0.0f);
             return;
         }
+        final VariableKeyFrame[] frames = group.keyFrames();
 
         VariableHolder target = new VariableHolder(0);
 
@@ -495,7 +503,7 @@ public class AnimationSection {
                                 IAnimationState.Impl.get(animator.getCurState()).getSrc(holder, target),
                                 IAnimationState.Impl.get(animator.getNextState()).getDest(frames[0].getPre(), target),
                                 time
-                        ).get()
+                        )
                 );
             } else {
                 holder.setValue(
@@ -503,7 +511,7 @@ public class AnimationSection {
                                 IAnimationState.Impl.get(animator.getCurState()).getSrc(holder, target),
                                 IAnimationState.Impl.get(animator.getNextState()).getDest(target, target),
                                 time
-                        ).get()
+                        )
                 );
             }
 
@@ -539,7 +547,7 @@ public class AnimationSection {
             byteBuf.writeOptional(Optional.ofNullable(animation.keyFrames.get(value)), BoneData::toNetwork);
         }
 
-        byteBuf.writeMap(animation.varFrames, FriendlyByteBuf::writeUtf, AnimationSection::writeVariableKeyFrames);
+        byteBuf.writeMap(animation.varFrames, FriendlyByteBuf::writeUtf, VariableKeyFrame.Group::toNetwork);
     }
 
     public static AnimationSection fromNetwork(FriendlyByteBuf byteBuf) {
@@ -552,7 +560,11 @@ public class AnimationSection {
             Optional<BoneData> optional = byteBuf.readOptional(BoneData::fromNetwork);
             optional.ifPresent(boneData -> map.put(value, boneData));
         }
-        final Object2ObjectMap<String, VariableKeyFrame[]> varFrames = byteBuf.readMap(Object2ObjectOpenHashMap::new, FriendlyByteBuf::readUtf, AnimationSection::readVariableKeyFrames);
+        final Object2ObjectMap<String, VariableKeyFrame.Group> varFrames = byteBuf.readMap(
+                Object2ObjectOpenHashMap::new,
+                FriendlyByteBuf::readUtf,
+                VariableKeyFrame.Group::fromNetwork
+        );
         return new AnimationSection(repeat, length, fadeIn, fadeOut, map, varFrames);
     }
 

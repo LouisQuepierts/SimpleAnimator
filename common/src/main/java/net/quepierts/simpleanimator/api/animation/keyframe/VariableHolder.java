@@ -10,8 +10,13 @@ public class VariableHolder {
     private static final byte FLOAT2 = 1;
     private static final byte FLOAT3 = 2;
 
-    public static VariableHolder get(Object o) {
-        return new VariableHolder(0.0f);
+    public static VariableHolder get(int size) {
+        return switch (size) {
+            case 1 -> new VariableHolder(0.0f);
+            case 2 -> new Float2(0.0f, 0.0f);
+            case 3 -> new Float3(0.0f, 0.0f, 0.0f);
+            default -> Immutable.INSTANCE;
+        };
     }
 
     public static VariableHolder decode(FriendlyByteBuf byteBuf) {
@@ -91,6 +96,10 @@ public class VariableHolder {
         return new VariableHolder(Interpolation.catmullRomInterpolation(p0.value, p1.value, p2.value, p3.value, delta));
     }
 
+    public int size() {
+        return 1;
+    }
+
     public static final class Float2 extends VariableHolder {
         private float y;
         private Float2(FriendlyByteBuf byteBuf) {
@@ -151,6 +160,11 @@ public class VariableHolder {
             byteBuf.writeFloat(get());
             byteBuf.writeFloat(y);
         }
+
+        @Override
+        public int size() {
+            return 2;
+        }
     }
 
     public static final class Float3 extends VariableHolder {
@@ -209,6 +223,11 @@ public class VariableHolder {
                     p3.getAsVector3f(),
                     delta
             ));
+        }
+
+        @Override
+        public int size() {
+            return 3;
         }
     }
 

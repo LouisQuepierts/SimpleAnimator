@@ -1,8 +1,6 @@
 package net.quepierts.simpleanimator.core.client;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -28,12 +26,15 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.UUID;
 
 @SuppressWarnings("unchecked")
 @Environment(EnvType.CLIENT)
 public class ClientAnimator extends Animator {
-    private static final Set<String> BUILTIN_VARIABLES;
+    private static final Object2IntMap<String> BUILTIN_VARIABLES;
     private static final ModelPart ROOT = new ModelPart(Collections.EMPTY_LIST, Collections.EMPTY_MAP);
     //private Animation animation;
     private final EnumMap<ModelBone, Cache> cache;
@@ -48,8 +49,8 @@ public class ClientAnimator extends Animator {
         this.cache = new EnumMap<>(ModelBone.class);
         this.ikCache = new EnumMap<>(IKBone.class);
         this.variables = new Object2ObjectOpenHashMap<>();
-        for (String variable : BUILTIN_VARIABLES) {
-            this.variables.put(variable, new VariableHolder(0.0f));
+        for (Object2IntMap.Entry<String> variable : BUILTIN_VARIABLES.object2IntEntrySet()) {
+            this.variables.put(variable.getKey(), VariableHolder.get(variable.getIntValue()));
         }
 
         for (ModelBone value : ModelBone.values()) {
@@ -74,9 +75,9 @@ public class ClientAnimator extends Animator {
         ResourceLocation location = this.animationLocation;
         super.sync(packet);
         if (!location.equals(this.animationLocation) || this.animation != null) {
-            Set<String> animationVariables = this.animation.getVariables();
-            for (String variable : animationVariables) {
-                this.variables.computeIfAbsent(variable, VariableHolder::get);
+            Object2IntMap<String> animationVariables = this.animation.getVariables();
+            for (Object2IntMap.Entry<String> entry : animationVariables.object2IntEntrySet()) {
+                this.variables.put(entry.getKey(), VariableHolder.get(entry.getIntValue()));
             }
         }
     }
@@ -97,8 +98,8 @@ public class ClientAnimator extends Animator {
             return false;
         }
 
-        for (String variable : this.animation.getVariables()) {
-            this.variables.computeIfAbsent(variable, VariableHolder::get);
+        for (Object2IntMap.Entry<String> entry : this.animation.getVariables().object2IntEntrySet()) {
+            this.variables.computeIfAbsent(entry.getKey(), key -> VariableHolder.get(entry.getIntValue()));
         }
 
         this.nextState = this.animation.hasEnterAnimation() ? AnimationState.ENTER : AnimationState.LOOP;
@@ -129,7 +130,7 @@ public class ClientAnimator extends Animator {
                         this.curState = this.nextState;
                         IAnimationState.Impl.get(this.curState).enter(this);
                         this.procState = ProcessState.PROCESS;
-                        SimpleAnimator.EVENT_BUS.post(new ClientAnimatorStateEvent.Enter(this.uuid, this.animationLocation, this.animation, this.curState, this.nextState));
+                        SimpleAnimator.EVENT_BUS.post(new ClientAnimatorStateEvent.Enter(this.uuid, this, this.animationLocation, this.animation, this.curState, this.nextState));
                         this.update(new AnimatorDataPacket(this, false));
                     }
                     break;
@@ -141,11 +142,11 @@ public class ClientAnimator extends Animator {
                         if (impl.shouldEnd(this)) {
                             this.nextState = impl.getNext(this);
                             impl.exit(this);
-                            SimpleAnimator.EVENT_BUS.post(new ClientAnimatorStateEvent.Exit(this.uuid, this.animationLocation, this.animation, this.curState, this.nextState));
+                            SimpleAnimator.EVENT_BUS.post(new ClientAnimatorStateEvent.Exit(this.uuid, this, this.animationLocation, this.animation, this.curState, this.nextState));
                             this.procState = ProcessState.TRANSFER;
                             this.shouldUpdate = false;
                         } else {
-                            SimpleAnimator.EVENT_BUS.post(new ClientAnimatorStateEvent.Loop(this.uuid, this.animationLocation, this.animation, this.curState, this.nextState));
+                            SimpleAnimator.EVENT_BUS.post(new ClientAnimatorStateEvent.Loop(this.uuid, this, this.animationLocation, this.animation, this.curState, this.nextState));
                         }
 
                         this.update(new AnimatorDataPacket(this, false));
@@ -263,6 +264,10 @@ public class ClientAnimator extends Animator {
 
     public Cache getCache(ModelBone bone) {
         return this.cache.get(bone);
+    }
+
+    public boolean hasVariable(String variable) {
+        return this.variables.containsKey(variable);
     }
 
     public VariableHolder getVariable(String variable) {
@@ -384,6 +389,10 @@ public class ClientAnimator extends Animator {
         return this.uuid.equals(Minecraft.getInstance().player.getUUID());
     }
 
+    public boolean isLocal() {
+        return isLocalPlayer();
+    }
+
     public void reset(boolean update) {
         super.reset(update);
         this.processed = false;
@@ -395,7 +404,7 @@ public class ClientAnimator extends Animator {
         });
 
         final Map<String, VariableHolder> temp = new Object2ObjectOpenHashMap<>(this.variables.size());
-        for (String variable : BUILTIN_VARIABLES) {
+        for (String variable : BUILTIN_VARIABLES.keySet()) {
             temp.put(variable, this.variables.get(variable));
         }
         this.variables.clear();
@@ -454,13 +463,10 @@ public class ClientAnimator extends Animator {
     }
 
     static {
-        BUILTIN_VARIABLES = ObjectOpenHashSet.of(
-                IKBone.HEAD.varName,
-                IKBone.LEFT_ARM.varName,
-                IKBone.RIGHT_ARM.varName
-                //,
-                //IKBone.LEFT_LEG.varName,
-                //IKBone.RIGHT_LEG.varName
-        );
+        Object2IntOpenHashMap<String> map = new Object2IntOpenHashMap<>();
+        map.put(IKBone.HEAD.varName, 1);
+        map.put(IKBone.LEFT_ARM.varName, 1);
+        map.put(IKBone.RIGHT_ARM.varName, 1);
+        BUILTIN_VARIABLES = Object2IntMaps.unmodifiable(map);
     }
 }
