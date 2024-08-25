@@ -173,6 +173,8 @@ public class VariableHolder {
 
         private Float3(FriendlyByteBuf byteBuf) {
             super(byteBuf);
+            this.y = byteBuf.readFloat();
+            this.z = byteBuf.readFloat();
         }
 
         public Float3(float x, float y, float z) {
@@ -193,6 +195,14 @@ public class VariableHolder {
             this.setValue(vector3f.x);
             this.y = vector3f.y;
             this.z = vector3f.z;
+        }
+
+        @Override
+        public void toNetwork(FriendlyByteBuf byteBuf) {
+            byteBuf.writeByte(FLOAT3);
+            byteBuf.writeFloat(get());
+            byteBuf.writeFloat(y);
+            byteBuf.writeFloat(z);
         }
 
         @Override
