@@ -243,6 +243,9 @@ public class VariableHolder {
 
     public static final class Immutable extends VariableHolder {
         public static final Immutable INSTANCE = new Immutable(0.0f);
+
+        @Deprecated
+        public static final Immutable ZERO = INSTANCE;
         public Immutable(float value) {
             super(value);
         }
