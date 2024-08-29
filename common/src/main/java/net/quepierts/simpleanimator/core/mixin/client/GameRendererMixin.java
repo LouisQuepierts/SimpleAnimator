@@ -28,10 +28,16 @@ public class GameRendererMixin {
 
     @Inject(
             method = "shouldRenderBlockOutline",
-            at = @At("HEAD"),
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/entity/LivingEntity;getMainHandItem()Lnet/minecraft/world/item/ItemStack;"
+            ),
             cancellable = true
     )
-    public void dontRenderBlockOutline(CallbackInfoReturnable<Boolean> cir) {
+    public void simpleanimator$dontRenderBlockOutline(CallbackInfoReturnable<Boolean> cir) {
+        if (this.minecraft.player == null)
+            return;
+
         ((IModelUpdater) this.itemInHandRenderer).simpleAnimator$update(this.minecraft.player);
 
         Animator animator = ((IAnimateHandler) this.minecraft.player).simpleanimator$getAnimator();
