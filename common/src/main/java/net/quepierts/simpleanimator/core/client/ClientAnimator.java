@@ -421,18 +421,18 @@ public class ClientAnimator extends Animator {
         Cache root = cache.get(ModelBone.ROOT);
 
         Matrix4f mat = new Matrix4f()
-                .translate(root.position())
                 .rotateXYZ(root.rotation())
+                .translate(root.position())
                 //.rotate(root.rotation())
                 .translate(0, 12, 0);
 
-        if (this.isRunning() && this.animation.isModifiedRig()) {
+        /*if (this.isRunning() && this.animation.isModifiedRig()) {
             Cache body = cache.get(ModelBone.BODY);
             mat.translate(body.position())
-                    .rotateXYZ(body.rotation())
+                    //.rotateXYZ(body.rotation())
                     //.rotate(body.rotation())
             ;
-        }
+        }*/
 
         return mat
                 .translate(0, 12, 0)

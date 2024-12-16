@@ -10,6 +10,7 @@ import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.command.AnimateCommand;
@@ -56,14 +57,14 @@ public class NeoForgeCommonProxy {
     }
 
     @SubscribeEvent
-    public void onEntityJoinLevel(final EntityJoinLevelEvent event) {
+    public void onPlayerLogin(final PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {
             this.proxy.getAnimatorManager().sync(serverPlayer);
         }
     }
 
     @SubscribeEvent
-    public void onEntityLeaveLevel(final EntityLeaveLevelEvent event) {
+    public void onPlayerLogout(final PlayerEvent.PlayerLoggedOutEvent event) {
         UUID uuid = event.getEntity().getUUID();
         this.proxy.getAnimatorManager().remove(uuid);
         this.proxy.getInteractionManager().remove(uuid);

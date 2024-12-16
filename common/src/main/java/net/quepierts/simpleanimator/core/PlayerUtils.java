@@ -34,10 +34,6 @@ public class PlayerUtils {
         return angle;
     }
 
-    public static float normalizeRadians(double rad) {
-        return (float) Math.toRadians(normalizeAngle((float) Math.toDegrees(rad)));
-    }
-
     public static float normalizeRadians(float rad) {
         // 将角度规范化到 -PI 到 PI 范围内
         rad = rad % ((float)Math.PI * 2);

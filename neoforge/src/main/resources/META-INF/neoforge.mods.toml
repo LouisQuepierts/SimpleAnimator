@@ -12,14 +12,14 @@ description = '''
 '''
 logoFile = "simple_animator.png"
 
-[[dependencies.simpleanimator]]
+[[dependencies.simple_animator]]
     modId = "neoforge"
     type = "required"
     versionRange = "${neoforge_version_range}"
     ordering = "NONE"
     side = "BOTH"
 
-[[dependencies.simpleanimator]]
+[[dependencies.simple_animator]]
     modId = "minecraft"
     type = "required"
     versionRange = "${minecraft_version_range}"

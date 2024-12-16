@@ -49,6 +49,9 @@ public abstract class PlayerMixin extends LivingEntity implements IAnimateHandle
         CommonProxy proxy = SimpleAnimator.getProxy();
         simpleanimator$animator = proxy.getAnimatorManager().createIfAbsent(this.getUUID());
         simpleanimator$request = proxy.getInteractionManager().createIfAbsent(this.getUUID());
+
+        simpleanimator$animator.reset(false);
+        simpleanimator$request.reset();
     }
 
     @Unique @Override

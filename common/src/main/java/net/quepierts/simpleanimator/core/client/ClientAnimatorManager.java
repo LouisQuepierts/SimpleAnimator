@@ -19,7 +19,12 @@ public class ClientAnimatorManager extends AnimatorManager<ClientAnimator> {
     }
 
     public ClientAnimator createIfAbsent(UUID player) {
-        return animators.computeIfAbsent(player, ClientAnimator::new);
+        ClientAnimator animator = this.animators.get(player);
+        if (!this.animators.containsKey(player)) {
+            animator = new ClientAnimator(player);
+            this.animators.put(player, animator);
+        }
+        return animator;
     }
 
     public void tick(float delta) {

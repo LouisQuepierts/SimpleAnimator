@@ -40,6 +40,7 @@ public class AnimationSection {
     private final EnumMap<ModelBone, BoneData> keyFrames;
     private final Object2ObjectMap<String, VariableKeyFrame.Group> varFrames;
 
+    // TODO ignore empty animations
     public static AnimationSection fromJsonObject(JsonObject json, Animation.Type type) {
         if (json == null) {
             return null;

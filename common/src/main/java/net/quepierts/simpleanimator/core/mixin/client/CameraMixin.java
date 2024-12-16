@@ -42,12 +42,16 @@ public abstract class CameraMixin {
             )
     )
     public void applyAnimation(BlockGetter pLevel, Entity pEntity, boolean pDetached, boolean pThirdPersonReverse, float pPartialTick, CallbackInfo ci) {
+        LocalPlayer player = Minecraft.getInstance().player;
+
+        if (player == null)
+            return;
+
         ClientAnimator animator = SimpleAnimator.getClient().getClientAnimatorManager().getLocalAnimator();
 
-        if (animator.isRunning() && animator.isProcessed()) {
+        if (animator.isRunning() && animator.isProcessed() && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
             Vector3f position = animator.getCameraPosition();
 
-            LocalPlayer player = Minecraft.getInstance().player;
             Vec2 vec2 = new Vec2(0, player.yBodyRot);
             float f = Mth.cos((vec2.y + 90.0F) * ((float)Math.PI / 180F));
             float f1 = Mth.sin((vec2.y + 90.0F) * ((float)Math.PI / 180F));
@@ -61,7 +65,7 @@ public abstract class CameraMixin {
                     this.position.y + position.y,
                     this.position.z + d2);
 
-            if (animator.getAnimation().isOverride(ModelBone.HEAD) && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
+            if (animator.getAnimation().isOverride(ModelBone.HEAD)) {
                 Vector3f rotation = animator.getCameraRotation();
 
                 float yRot = (player.yHeadRot - player.yBodyRot);
