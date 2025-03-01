@@ -405,18 +405,18 @@ public class AnimationSection {
         if (animator.getAnimation().isOverride(bone)) {
             final PartPose initialPose = part.getInitialPose();
             final PartPose pose = PartPose.offsetAndRotation(
-                    part.x - initialPose.x,
-                    initialPose.y - part.y,     // Fix invert
-                    part.z - initialPose.z,
-                    part.xRot - initialPose.xRot,
-                    part.yRot - initialPose.yRot,
-                    part.zRot - initialPose.zRot
+                    part.x - initialPose.x(),
+                    initialPose.y() - part.y,     // Fix invert
+                    part.z - initialPose.z(),
+                    part.xRot - initialPose.xRot(),
+                    part.yRot - initialPose.yRot(),
+                    part.zRot - initialPose.zRot()
             );
 
-            position = new Vector3f(pose.x, pose.y, pose.z);
+            position = new Vector3f(pose.x(), pose.y(), pose.z());
 //            rotation = new Quaternionf().rotateXYZ(pose.xRot, pose.yRot, pose.zRot);
 //            eular = new Vector3f(pose.xRot, pose.yRot, pose.zRot);
-            rotation = new Vector3f(pose.xRot, pose.yRot, pose.zRot);
+            rotation = new Vector3f(pose.xRot(), pose.yRot(), pose.zRot());
         }
 
         if (data == null) {

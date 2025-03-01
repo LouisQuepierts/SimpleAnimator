@@ -13,7 +13,6 @@ import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.util.profiling.ProfilerFiller;
 import net.quepierts.simpleanimator.api.animation.Animation;
 import net.quepierts.simpleanimator.api.animation.Interaction;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
@@ -61,7 +60,7 @@ public class AnimationManager implements PreparableReloadListener {
 
     @Override
     @NotNull
-    public CompletableFuture<Void> reload(PreparationBarrier pPreparationBarrier, ResourceManager pResourceManager, ProfilerFiller pPreparationsProfiler, ProfilerFiller pReloadProfiler, Executor pBackgroundExecutor, Executor pGameExecutor) {
+    public CompletableFuture<Void> reload(PreparationBarrier pPreparationBarrier, ResourceManager pResourceManager, Executor pBackgroundExecutor, Executor executor2) {
         CompletableFuture<List<Pair<ResourceLocation, Animation[]>>> animations = load(pResourceManager, pBackgroundExecutor);
 
         return CompletableFuture.allOf(animations)
@@ -224,5 +223,4 @@ public class AnimationManager implements PreparableReloadListener {
                 SimpleAnimator.getNetwork().sendToPlayer(this.cacheInteractions, player);
         }
     }
-
 }

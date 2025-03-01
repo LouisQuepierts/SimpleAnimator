@@ -4,7 +4,10 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockGetter;
@@ -49,7 +52,18 @@ public abstract class CameraMixin {
 
         ClientAnimator animator = SimpleAnimator.getClient().getClientAnimatorManager().getLocalAnimator();
 
-        if (animator.isRunning() && animator.isProcessed() && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
+        if (animator.isRunning() && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
+
+            if (animator.isProcessed()) {
+                EntityRenderer<? super LocalPlayer, ?> renderer = Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(player);
+
+                if (!(renderer instanceof PlayerRenderer playerRenderer))
+                    return;
+
+                PlayerModel model = playerRenderer.getModel();
+                animator.process(model, player);
+            }
+
             Vector3f position = animator.getCameraPosition();
 
             Vec2 vec2 = new Vec2(0, player.yBodyRot);

@@ -27,7 +27,7 @@ public abstract class MinecraftClientMixin {
     @Shadow @Nullable
     public LocalPlayer player;
 
-    @Shadow @Final private DeltaTracker.Timer timer;
+    @Shadow @Final private DeltaTracker.Timer deltaTracker;
 
     @Shadow public abstract boolean isPaused();
 
@@ -57,7 +57,7 @@ public abstract class MinecraftClientMixin {
     )
     public void tickAnimators(boolean bl, CallbackInfo ci) {
         if (!this.isPaused() && level != null) {
-            SimpleAnimator.getClient().getAnimatorManager().tick(timer.getGameTimeDeltaTicks() / 20);
+            SimpleAnimator.getClient().getAnimatorManager().tick(deltaTracker.getGameTimeDeltaTicks() / 20);
         }
     }
 }

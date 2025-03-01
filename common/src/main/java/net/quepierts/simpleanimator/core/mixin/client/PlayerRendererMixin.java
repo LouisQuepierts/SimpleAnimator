@@ -1,19 +1,14 @@
 package net.quepierts.simpleanimator.core.mixin.client;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
-import net.quepierts.simpleanimator.api.IAnimateHandler;
+import net.minecraft.client.renderer.entity.state.PlayerRenderState;
+import net.quepierts.simpleanimator.core.client.util.PlayerHolder;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,12 +16,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Environment(EnvType.CLIENT)
 @Mixin(PlayerRenderer.class)
-public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
-    public PlayerRendererMixin(EntityRendererProvider.Context pContext, PlayerModel<AbstractClientPlayer> pModel, float pShadowRadius) {
+public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractClientPlayer, PlayerRenderState, PlayerModel> {
+    public PlayerRendererMixin(EntityRendererProvider.Context pContext, PlayerModel pModel, float pShadowRadius) {
         super(pContext, pModel, pShadowRadius);
     }
 
-    @Inject(
+    /*@Inject(
             method = "renderHand",
             at = @At(
                     value = "INVOKE",
@@ -35,7 +30,7 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
             ),
             cancellable = true
     )
-    public void forceSetupAnimWithRotation(PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, AbstractClientPlayer pPlayer, ModelPart pRendererArm, ModelPart pRendererArmwear, CallbackInfo ci) {
+    public void forceSetupAnimWithRotation(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, ResourceLocation resourceLocation, ModelPart modelPart, boolean bl, CallbackInfo ci) {
         if (((IAnimateHandler) pPlayer).simpleanimator$getAnimator().isRunning()) {
             pRendererArm.xRot = 0.0F;
             ResourceLocation resourceLocation = pPlayer.getSkin().texture();
@@ -44,5 +39,18 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
             pRendererArmwear.render(pPoseStack, pBuffer.getBuffer(RenderType.entityTranslucent(resourceLocation)), pCombinedLight, OverlayTexture.NO_OVERLAY);
             ci.cancel();
         }
+    }*/
+
+    @Inject(
+            method = "extractRenderState(Lnet/minecraft/client/player/AbstractClientPlayer;Lnet/minecraft/client/renderer/entity/state/PlayerRenderState;F)V",
+            at = @At("TAIL")
+    )
+    private void simpleanimator$addUUID(
+            AbstractClientPlayer abstractClientPlayer,
+            PlayerRenderState playerRenderState,
+            float f,
+            CallbackInfo ci
+    ) {
+        ((PlayerHolder) playerRenderState).setPlayer(abstractClientPlayer);
     }
 }

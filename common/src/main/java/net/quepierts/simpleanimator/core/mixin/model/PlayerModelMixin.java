@@ -6,10 +6,10 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.client.renderer.entity.state.PlayerRenderState;
 import net.quepierts.simpleanimator.core.SimpleAnimator;
 import net.quepierts.simpleanimator.core.client.ClientAnimator;
+import net.quepierts.simpleanimator.core.client.util.PlayerHolder;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Environment(EnvType.CLIENT)
 @Mixin(PlayerModel.class)
-public class PlayerModelMixin<T extends LivingEntity> extends HumanoidModel<T>  {
+public class PlayerModelMixin extends HumanoidModel<PlayerRenderState>  {
     @Shadow @Final public ModelPart leftPants;
 
     @Shadow @Final public ModelPart rightPants;
@@ -37,37 +37,33 @@ public class PlayerModelMixin<T extends LivingEntity> extends HumanoidModel<T>  
     }
 
     @Inject(
-            method = "setupAnim(Lnet/minecraft/world/entity/LivingEntity;FFFFF)V",
+            method = "setupAnim(Lnet/minecraft/client/renderer/entity/state/PlayerRenderState;)V",
             at = @At("HEAD")
     )
-    public void resetModelParts(T livingEntity, float f, float g, float h, float i, float j, CallbackInfo ci) {
-        this.head.resetPose();
-        this.body.resetPose();
-        this.leftArm.resetPose();
-        this.rightArm.resetPose();
-        this.leftLeg.resetPose();
-        this.rightLeg.resetPose();
+    public void resetModelParts(PlayerRenderState playerRenderState, CallbackInfo ci) {
+        this.resetPose();
     }
 
-    @SuppressWarnings("unchecked")
     @Inject(
-            method = "setupAnim(Lnet/minecraft/world/entity/LivingEntity;FFFFF)V",
-            at = @At(
-                    value = "RETURN"
-            )
+            method = "setupAnim(Lnet/minecraft/client/renderer/entity/state/PlayerRenderState;)V",
+            at = @At("TAIL")
     )
-    public void process(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch, CallbackInfo ci) {
+    public void process(PlayerRenderState playerRenderState, CallbackInfo ci) {
+        if (!(playerRenderState instanceof PlayerHolder holder))
+            return;
+
+        AbstractClientPlayer pEntity = holder.getPlayer();
         ClientAnimator animator = SimpleAnimator.getClient().getClientAnimatorManager().getAnimator(pEntity.getUUID());
 
         if (animator != null && animator.isRunning()) {
-            animator.process((PlayerModel<AbstractClientPlayer>) (Object) this, (Player) pEntity);
+            animator.process((PlayerModel) (Object) this, pEntity);
 
-            this.hat.copyFrom(this.head);
-            this.leftPants.copyFrom(this.leftLeg);
-            this.rightPants.copyFrom(this.rightLeg);
-            this.leftSleeve.copyFrom(this.leftArm);
-            this.rightSleeve.copyFrom(this.rightArm);
-            this.jacket.copyFrom(this.body);
+//            this.hat.copyFrom(this.head);
+//            this.leftPants.copyFrom(this.leftLeg);
+//            this.rightPants.copyFrom(this.rightLeg);
+//            this.leftSleeve.copyFrom(this.leftArm);
+//            this.rightSleeve.copyFrom(this.rightArm);
+//            this.jacket.copyFrom(this.body);
         }
     }
 

@@ -33,10 +33,9 @@ public class ItemInHandRendererMixin implements IModelUpdater {
 
         if (animator.isRunning()) {
             PlayerRenderer playerrenderer = (PlayerRenderer)this.entityRenderDispatcher.getRenderer(pPlayer);
-            PlayerModel<AbstractClientPlayer> model = playerrenderer.getModel();
-            float yaw = pPlayer.yHeadRot - pPlayer.yBodyRot;
-            float pitch = pPlayer.getXRot();
-            model.setupAnim(pPlayer, 0F, 0F, 0F, yaw, pitch);
+            PlayerModel model = playerrenderer.getModel();
+            model.resetPose();
+            animator.process(model, pPlayer);
         }
     }
 

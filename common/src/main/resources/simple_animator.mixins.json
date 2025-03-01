@@ -20,6 +20,7 @@
     "client.LocalPlayerMixin",
     "client.MinecraftClientMixin",
     "client.PlayerRendererMixin",
+    "client.PlayerRenderStateMixin",
     "model.CubeListBuilderMixin",
     "model.PlayerModelMixin"
   ],

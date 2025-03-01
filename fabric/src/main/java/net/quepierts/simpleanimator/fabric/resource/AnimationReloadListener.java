@@ -18,7 +18,7 @@ public class AnimationReloadListener implements IdentifiableResourceReloadListen
     }
 
     @Override
-    public @NotNull CompletableFuture<Void> reload(PreparationBarrier preparationBarrier, ResourceManager resourceManager, ProfilerFiller profilerFiller, ProfilerFiller profilerFiller2, Executor executor, Executor executor2) {
-        return SimpleAnimator.getProxy().getAnimationManager().reload(preparationBarrier, resourceManager, profilerFiller, profilerFiller2, executor, executor2);
+    public @NotNull CompletableFuture<Void> reload(PreparationBarrier preparationBarrier, ResourceManager resourceManager, Executor executor, Executor executor2) {
+        return SimpleAnimator.getProxy().getAnimationManager().reload(preparationBarrier, resourceManager, executor, executor2);
     }
 }

@@ -7,7 +7,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -156,7 +155,7 @@ public class ClientAnimator extends Animator {
         }
     }
 
-    public void process(PlayerModel<AbstractClientPlayer> model, Player player) {
+    public void process(PlayerModel model, Player player) {
         this.update(model, player);
 
         if (this.animation.isModifiedRig()) {
@@ -179,7 +178,7 @@ public class ClientAnimator extends Animator {
         }
     }
 
-    private void update(PlayerModel<AbstractClientPlayer> model, Player player) {
+    private void update(PlayerModel model, Player player) {
         if (this.animation == null)
             return;
 
@@ -297,9 +296,9 @@ public class ClientAnimator extends Animator {
         Vector3f position = cache.position;
         PartPose pose = animation.isOverride(bone) ? part.getInitialPose() : part.storePose();
 
-        part.x = pose.x + position.x;
-        part.y = pose.y - position.y;
-        part.z = pose.z + position.z;
+        part.x = pose.x() + position.x;
+        part.y = pose.y() - position.y;
+        part.z = pose.z() + position.z;
 
         //Vector3f rotation = cache.rotation.getEulerAnglesXYZ(new Vector3f());
         Vector3f rotation = cache.rotation();
@@ -309,9 +308,9 @@ public class ClientAnimator extends Animator {
             //rotation.add(this.ikCache.get(bone.getIk()).rotation);
         }
 
-        part.xRot = pose.xRot + rotation.x;
-        part.yRot = pose.yRot + rotation.y;
-        part.zRot = pose.zRot + rotation.z;
+        part.xRot = pose.xRot() + rotation.x;
+        part.yRot = pose.yRot() + rotation.y;
+        part.zRot = pose.zRot() + rotation.z;
     }
 
     // change pivot point from (0 24 0) -> (0 12 0)
@@ -324,11 +323,11 @@ public class ClientAnimator extends Animator {
         PartPose pose = animation.isOverride(ModelBone.BODY) ? body.getInitialPose() : body.storePose();
 
         Quaternionf rot = new Quaternionf().rotateXYZ(
-                pose.xRot + rotation.x,
-                pose.yRot + rotation.y,
-                pose.zRot + rotation.z
+                pose.xRot() + rotation.x,
+                pose.yRot() + rotation.y,
+                pose.zRot() + rotation.z
         );
-        Vector3f position = new Vector3f(pose.x, pose.y, pose.z)
+        Vector3f position = new Vector3f(pose.x(), pose.y(), pose.z())
                 .sub(0, 12, 0)
                 .rotate(rot)
                 .add(0, 12, 0)
@@ -353,13 +352,13 @@ public class ClientAnimator extends Animator {
         Vector3f position;
         PartPose pose = animation.isOverride(bone) ? part.getInitialPose() : part.storePose();
 
-        position = parentMat.transformPosition(new Vector3f(pose.x, pose.y, pose.z).add(cache.position.x, -cache.position.y, cache.position.z));
+        position = parentMat.transformPosition(new Vector3f(pose.x(), pose.y(), pose.z()).add(cache.position.x, -cache.position.y, cache.position.z));
 
         part.x = position.x;
         part.y = position.y;
         part.z = position.z;
 
-        Vector3f rotation = new Vector3f(cache.rotation()).add(pose.xRot, pose.yRot, pose.zRot).add(parentRot);
+        Vector3f rotation = new Vector3f(cache.rotation()).add(pose.xRot(), pose.yRot(), pose.zRot()).add(parentRot);
         //Vector3f rotation = new Vector3f(cache.rotation.getEulerAnglesXYZ(new Vector3f())).add(pose.xRot, pose.yRot, pose.zRot).add(parentRot);
 
         if (bone.getIk() != null) {
